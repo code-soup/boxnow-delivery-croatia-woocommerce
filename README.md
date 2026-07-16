@@ -53,6 +53,18 @@ Configure locker selection widget display options.
 - **Embedded** - Displays locker map inline on checkout page
 - **Custom** - Manual placement via shortcode `[codesoup_boxnow_pick_locker]` - full control over map positioning
 
+## Screenshots
+
+### API Settings
+Configure BoxNow API credentials and warehouse settings.
+
+![API Settings](.github/assets/screenshots/settings-api.png)
+
+### Widget Configuration
+Customize locker selection button and map display options.
+
+![Widget Settings](.github/assets/screenshots/settings-widget.png)
+
 ## Features
 
 ### Shipping Method
