@@ -63,13 +63,13 @@ Configure locker selection widget display options.
 
 Configure BoxNow API credentials and warehouse settings.
 
-![API Settings](.github/assets/screenshots/settings-api.png)
+![API Settings](https://raw.githubusercontent.com/code-soup/boxnow-delivery-croatia-woocommerce/develop/.github/assets/screenshots/settings-api.png)
 
 ### Widget Configuration
 
 Customize locker selection button and map display options.
 
-![Widget Settings](.github/assets/screenshots/settings-widget.png)
+![Widget Settings](https://raw.githubusercontent.com/code-soup/boxnow-delivery-croatia-woocommerce/develop/.github/assets/screenshots/settings-widget.png)
 
 ## Features
 
