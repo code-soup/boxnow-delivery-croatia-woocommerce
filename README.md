@@ -4,7 +4,11 @@ WordPress plugin that integrates BoxNow locker delivery service with WooCommerce
 
 ## Disclaimer
 
-This is an unofficial plugin. The developer is not affiliated with, endorsed by, or sponsored by BoxNow. This plugin is provided "as is" without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the plugin or the use or other dealings in the plugin.
+This is an unofficial plugin. The developer of this plugin is not affiliated with, endorsed by, or sponsored by BoxNow.
+
+This plugin is provided "as is" without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.
+
+In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the plugin or the use or other dealings in the plugin.
 Use at your own risk. Test thoroughly in a staging environment before production use.
 
 ## Requirements
@@ -56,11 +60,13 @@ Configure locker selection widget display options.
 ## Screenshots
 
 ### API Settings
+
 Configure BoxNow API credentials and warehouse settings.
 
 ![API Settings](.github/assets/screenshots/settings-api.png)
 
 ### Widget Configuration
+
 Customize locker selection button and map display options.
 
 ![Widget Settings](.github/assets/screenshots/settings-widget.png)
@@ -176,12 +182,12 @@ includes/
 ├── core/                    # Core plugin classes
 ├── constants/               # Constant definitions
 ├── integrations/            # Third-party integrations
-│   └── woocommerce/        # WooCommerce specific
-├── services/               # Business logic
-│   ├── api/               # BoxNow API client
-│   ├── orders/            # Order handling
-│   └── ajax/              # AJAX handlers
-└── traits/                # Reusable traits
+│   └── woocommerce/         # WooCommerce specific
+├── services/                # Business logic
+│   ├── api/                 # BoxNow API client
+│   ├── orders/              # Order handling
+│   └── ajax/                # AJAX handlers
+└── traits/                  # Reusable traits
 ```
 
 ### Logging
