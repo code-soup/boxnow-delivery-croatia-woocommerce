@@ -1,0 +1,103 @@
+name: Deploy Production Build
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+      
+      - name: Install Node dependencies
+        run: npm ci
+      
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+      
+      - name: Build production assets
+        run: npm run build:prod
+      
+      - name: Prepare production files
+        run: |
+          # Remove development files
+          rm -rf node_modules
+          rm -rf src
+          rm -rf .github
+          rm -rf agent-skills
+          rm -rf backups
+          rm -rf docs
+          rm -f .gitignore
+          rm -f .eslintrc.*
+          rm -f babel.config.js
+          rm -f eslint.config.js
+          rm -f package.json
+          rm -f package-lock.json
+          rm -f composer.json
+          rm -f composer.lock
+          rm -f phpcs.xml
+          rm -f webpack.config.js
+          
+          # Keep only production files
+          echo "Production files prepared"
+      
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+      
+      - name: Deploy to master branch
+        run: |
+          # Create orphan master branch if doesn't exist
+          git checkout --orphan master || git checkout master
+          
+          # Remove all files from master
+          git rm -rf . || true
+          
+          # Copy production files from develop
+          git checkout develop -- .
+          
+          # Remove development files again (after checkout)
+          rm -rf node_modules src .github agent-skills backups docs
+          rm -f .gitignore .eslintrc.* babel.config.js eslint.config.js
+          rm -f package.json package-lock.json composer.json composer.lock phpcs.xml webpack.config.js
+          
+          # Create production .gitignore
+          cat > .gitignore << 'EOF'
+          .DS_Store
+          .DS_Store?
+          Thumbs.db
+          ._*
+          .Spotlight-V100
+          .Trashes
+          .vscode
+          .cursor
+          .idea
+          *.log
+          EOF
+          
+          # Add all production files
+          git add -A
+          
+          # Commit and push
+          git commit -m "Production build from develop $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          git push origin master --force

@@ -1,0 +1,262 @@
+<?php
+/**
+ * Container class.
+ *
+ * @package CodeSoup\BoxNow
+ */
+
+declare(strict_types=1);
+
+namespace CodeSoup\BoxNow\Core;
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
+
+use Psr\Container\ContainerInterface;
+use ReflectionClass;
+use ReflectionParameter;
+
+/**
+ * Dependency Injection Container
+ *
+ * A simple but effective DI container for managing plugin dependencies.
+ * Supports singleton services, factory services, and automatic resolution.
+ *
+ * @since 1.0.0
+ */
+class Container implements ContainerInterface {
+
+	/**
+	 * The container's bindings.
+	 *
+	 * @var array<string, array{concrete: callable|string, shared: bool}>
+	 */
+	private array $bindings = array();
+
+	/**
+	 * The container's shared instances.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $instances = array();
+
+	/**
+	 * The container's aliases.
+	 *
+	 * @var array<string, string>
+	 */
+	private array $aliases = array();
+
+	/**
+	 * Services currently being resolved (for circular dependency detection).
+	 *
+	 * @var array<string, true>
+	 */
+	private array $resolving = array();
+
+	/**
+	 * Bind a new service into the container.
+	 *
+	 * @param string          $id       The abstract identifier.
+	 * @param callable|string $concrete The concrete implementation.
+	 * @param bool            $shared   Whether the service should be a singleton.
+	 *
+	 * @return void
+	 */
+	public function bind( string $id, $concrete, bool $shared = false ): void {
+		$this->bindings[ $id ] = compact( 'concrete', 'shared' );
+	}
+
+	/**
+	 * Bind a new singleton service into the container.
+	 *
+	 * @param string          $id       The abstract identifier.
+	 * @param callable|string $concrete The concrete implementation.
+	 *
+	 * @return void
+	 */
+	public function singleton( string $id, $concrete ): void {
+		$this->bind( $id, $concrete, true );
+	}
+
+	/**
+	 * Bind an existing instance as a singleton.
+	 *
+	 * @param string $id       The abstract identifier.
+	 * @param mixed  $instance The existing instance.
+	 *
+	 * @return void
+	 */
+	public function instance( string $id, $instance ): void {
+		$this->instances[ $id ] = $instance;
+	}
+
+	/**
+	 * Alias a service to a different name.
+	 *
+	 * @param string $id    The abstract identifier.
+	 * @param string $alias The alias.
+	 *
+	 * @return void
+	 */
+	public function alias( string $id, string $alias ): void {
+		$this->aliases[ $alias ] = $id;
+	}
+
+	/**
+	 * Finds an entry of the container by its identifier and returns it.
+	 *
+	 * @param string $id The identifier of the entry to look for.
+	 *
+	 * @return mixed The entry.
+	 * @throws \Exception If the entry is not found.
+	 */
+	public function get( string $id ) {
+		$id = $this->aliases[ $id ] ?? $id;
+
+		if ( isset( $this->instances[ $id ] ) ) {
+			return $this->instances[ $id ];
+		}
+
+		if ( ! isset( $this->bindings[ $id ] ) ) {
+			if ( class_exists( $id ) ) {
+				return $this->resolve( $id );
+			}
+
+			throw new \Exception( sprintf( 'Service "%s" not found in container.', $id ) );
+		}
+
+		$binding = $this->bindings[ $id ];
+
+		$instance = $this->resolve( $binding['concrete'] );
+
+		if ( $binding['shared'] ) {
+			$this->instances[ $id ] = $instance;
+		}
+
+		return $instance;
+	}
+
+	/**
+	 * Returns true if the container can return an entry for the given identifier.
+	 *
+	 * @param string $id The identifier of the entry to look for.
+	 *
+	 * @return bool
+	 */
+	public function has( string $id ): bool {
+		$id = $this->aliases[ $id ] ?? $id;
+
+		return isset( $this->bindings[ $id ] ) || isset( $this->instances[ $id ] );
+	}
+
+	/**
+	 * Resolve and return a new instance (alias for get).
+	 *
+	 * @param string $abstract The class name to resolve.
+	 *
+	 * @return mixed
+	 * @throws \Exception If the class cannot be resolved.
+	 */
+	public function make( string $abstract ) {
+		return $this->get( $abstract );
+	}
+
+	/**
+	 * Resolve a service from the container.
+	 *
+	 * @param callable|string $concrete The concrete implementation.
+	 *
+	 * @return mixed
+	 * @throws \Exception If the service cannot be resolved.
+	 */
+	private function resolve( $concrete ) {
+		if ( is_callable( $concrete ) ) {
+			return $concrete( $this );
+		}
+
+		if ( ! class_exists( $concrete ) ) {
+			throw new \Exception( sprintf( 'Cannot resolve concrete class: %s.', $concrete ) );
+		}
+
+		// Check for circular dependency.
+		if ( isset( $this->resolving[ $concrete ] ) ) {
+			$chain = implode( ' -> ', array_keys( $this->resolving ) ) . ' -> ' . $concrete;
+			throw new \Exception( sprintf( 'Circular dependency detected: %s', $chain ) );
+		}
+
+		$this->resolving[ $concrete ] = true;
+
+		try {
+			$reflector = new ReflectionClass( $concrete );
+
+			if ( ! $reflector->isInstantiable() ) {
+				throw new \Exception( sprintf( 'Class "%s" is not instantiable.', $concrete ) );
+			}
+
+			$constructor = $reflector->getConstructor();
+
+			if ( is_null( $constructor ) ) {
+				unset( $this->resolving[ $concrete ] );
+				return new $concrete();
+			}
+
+			$dependencies = array_map(
+				function ( ReflectionParameter $param ) use ( $concrete ) {
+					$type = $param->getType();
+
+					if ( ! $type ) {
+						throw new \Exception( sprintf( 'Cannot resolve class dependency "%s" in class "%s".', $param->getName(), $concrete ) );
+					}
+
+					if ( $type->isBuiltin() ) {
+						throw new \Exception( sprintf( 'Cannot resolve built-in type "%s" in class "%s".', $type->getName(), $concrete ) );
+					}
+
+					return $this->get( $type->getName() );
+				},
+				$constructor->getParameters()
+			);
+
+			$instance = $reflector->newInstanceArgs( $dependencies );
+
+			unset( $this->resolving[ $concrete ] );
+
+			return $instance;
+		} catch ( \Exception $e ) {
+			unset( $this->resolving[ $concrete ] );
+			throw $e;
+		}
+	}
+
+	/**
+	 * Clear all services and instances
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function clear(): void {
+		$this->bindings  = array();
+		$this->instances = array();
+		$this->aliases   = array();
+	}
+
+	/**
+	 * Get all registered service IDs
+	 *
+	 * @since 1.0.0
+	 * @return array<string>
+	 */
+	public function get_service_ids(): array {
+		return array_keys( $this->bindings );
+	}
+
+	/**
+	 * Remove a service from the container.
+	 *
+	 * @param string $id The service ID.
+	 */
+	public function remove( string $id ): void {
+		unset( $this->bindings[ $id ], $this->instances[ $id ], $this->aliases[ $id ] );
+	}
+}

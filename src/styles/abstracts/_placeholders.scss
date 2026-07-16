@@ -1,0 +1,11 @@
+/**
+ * Screen reader text
+ */
+%sr-only {
+    position: absolute;
+    top: auto;
+    left: -10000rem;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}

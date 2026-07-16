@@ -1,0 +1,9 @@
+@mixin input-placeholder {
+    &::-webkit-input-placeholder {
+        @content;
+    }
+    
+    &::placeholder {
+        @content;
+    }
+}

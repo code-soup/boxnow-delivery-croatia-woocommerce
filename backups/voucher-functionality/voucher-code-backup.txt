@@ -1,0 +1,320 @@
+includes/constants/class-meta-keys.php-32-	 * Warehouse Selection
+includes/constants/class-meta-keys.php-33-	 */
+includes/constants/class-meta-keys.php-34-	const WAREHOUSE = '_selected_warehouse';
+includes/constants/class-meta-keys.php-35-
+includes/constants/class-meta-keys.php-36-	/**
+includes/constants/class-meta-keys.php:37:	 * Voucher/Parcel Meta Keys
+includes/constants/class-meta-keys.php-38-	 */
+includes/constants/class-meta-keys.php-39-	const PARCEL_ID          = '_boxnow_parcel_id';        // Single parcel ID (automatic creation)
+includes/constants/class-meta-keys.php-40-	const PARCEL_IDS         = '_boxnow_parcel_ids';       // Array of parcel IDs (manual creation)
+includes/constants/class-meta-keys.php:41:	const VOUCHER_CREATED    = '_voucher_created';         // Flag: 'yes' or empty
+includes/constants/class-meta-keys.php:42:	const VOUCHERS_CREATED   = '_boxnow_vouchers_created'; // Flag: 1 or empty (manual vouchers)
+includes/constants/class-meta-keys.php-43-
+includes/constants/class-meta-keys.php-44-	/**
+includes/constants/class-meta-keys.php-45-	 * Prevent instantiation.
+includes/constants/class-meta-keys.php-46-	 */
+includes/constants/class-meta-keys.php-47-	private function __construct() {}
+includes/constants/class-meta-keys.php-48-}
+--
+includes/integrations/woocommerce/class-wc-settings-box-now.php-34-	 */
+includes/integrations/woocommerce/class-wc-settings-box-now.php-35-	protected function get_own_sections() {
+includes/integrations/woocommerce/class-wc-settings-box-now.php-36-		return array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php-37-			''       => __( 'API Settings', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-38-			'widget' => __( 'Widget Settings', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php:39:			'voucher' => __( 'Voucher Settings', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-40-		);
+includes/integrations/woocommerce/class-wc-settings-box-now.php-41-	}
+includes/integrations/woocommerce/class-wc-settings-box-now.php-42-
+includes/integrations/woocommerce/class-wc-settings-box-now.php-43-	/**
+includes/integrations/woocommerce/class-wc-settings-box-now.php-44-	 * Get settings for the default section (API Settings).
+includes/integrations/woocommerce/class-wc-settings-box-now.php-45-	 *
+includes/integrations/woocommerce/class-wc-settings-box-now.php-46-	 * Modern WooCommerce pattern - individual methods per section.
+includes/integrations/woocommerce/class-wc-settings-box-now.php-47-	 * The base class get_settings_for_section() method calls these automatically.
+includes/integrations/woocommerce/class-wc-settings-box-now.php-48-	 *
+includes/integrations/woocommerce/class-wc-settings-box-now.php-49-	 * @return array
+--
+includes/integrations/woocommerce/class-wc-settings-box-now.php-60-	protected function get_settings_for_widget_section() {
+includes/integrations/woocommerce/class-wc-settings-box-now.php-61-		return $this->get_widget_settings();
+includes/integrations/woocommerce/class-wc-settings-box-now.php-62-	}
+includes/integrations/woocommerce/class-wc-settings-box-now.php-63-
+includes/integrations/woocommerce/class-wc-settings-box-now.php-64-	/**
+includes/integrations/woocommerce/class-wc-settings-box-now.php:65:	 * Get settings for the voucher section.
+includes/integrations/woocommerce/class-wc-settings-box-now.php-66-	 *
+includes/integrations/woocommerce/class-wc-settings-box-now.php-67-	 * @return array
+includes/integrations/woocommerce/class-wc-settings-box-now.php-68-	 */
+includes/integrations/woocommerce/class-wc-settings-box-now.php:69:	protected function get_settings_for_voucher_section() {
+includes/integrations/woocommerce/class-wc-settings-box-now.php:70:		return $this->get_voucher_settings();
+includes/integrations/woocommerce/class-wc-settings-box-now.php-71-	}
+includes/integrations/woocommerce/class-wc-settings-box-now.php-72-
+includes/integrations/woocommerce/class-wc-settings-box-now.php-73-	/**
+includes/integrations/woocommerce/class-wc-settings-box-now.php-74-	 * Get API settings.
+includes/integrations/woocommerce/class-wc-settings-box-now.php-75-	 *
+includes/integrations/woocommerce/class-wc-settings-box-now.php-76-	 * @return array
+includes/integrations/woocommerce/class-wc-settings-box-now.php-77-	 */
+includes/integrations/woocommerce/class-wc-settings-box-now.php-78-	private function get_api_settings() {
+includes/integrations/woocommerce/class-wc-settings-box-now.php-79-		return array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php-80-			array(
+--
+includes/integrations/woocommerce/class-wc-settings-box-now.php-193-			),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-194-		);
+includes/integrations/woocommerce/class-wc-settings-box-now.php-195-	}
+includes/integrations/woocommerce/class-wc-settings-box-now.php-196-
+includes/integrations/woocommerce/class-wc-settings-box-now.php-197-	/**
+includes/integrations/woocommerce/class-wc-settings-box-now.php:198:	 * Get voucher settings.
+includes/integrations/woocommerce/class-wc-settings-box-now.php-199-	 *
+includes/integrations/woocommerce/class-wc-settings-box-now.php-200-	 * @return array
+includes/integrations/woocommerce/class-wc-settings-box-now.php-201-	 */
+includes/integrations/woocommerce/class-wc-settings-box-now.php:202:	private function get_voucher_settings() {
+includes/integrations/woocommerce/class-wc-settings-box-now.php-203-		return array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php-204-			array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php:205:				'title' => __( 'Voucher Configuration', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-206-				'type'  => 'title',
+includes/integrations/woocommerce/class-wc-settings-box-now.php:207:				'id'    => 'boxnow_voucher_settings',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-208-			),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-209-			array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php:210:				'title'   => __( 'Voucher Option', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php:211:				'id'      => 'boxnow_voucher_option',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-212-				'type'    => 'select',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-213-				'options' => array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php-214-					'button' => __( 'Button', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-215-					'email'  => __( 'Email', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-216-				),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-217-				'default' => 'button',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-218-			),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-219-			array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php:220:				'title' => __( 'Voucher Email', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php:221:				'id'    => 'boxnow_voucher_email',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-222-				'type'  => 'email',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-223-			),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-224-			array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php-225-				'title' => __( 'Mobile Number', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-226-				'id'    => 'boxnow_mobile_number',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-227-				'type'  => 'text',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-228-			),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-229-			array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php-230-				'title'       => __( 'Allow Returns', 'codesoup-woo-boxnow' ),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-231-				'id'          => 'boxnow_allow_returns',
+--
+includes/integrations/woocommerce/class-wc-settings-box-now.php-239-				'type'    => 'checkbox',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-240-				'default' => 'yes',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-241-			),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-242-			array(
+includes/integrations/woocommerce/class-wc-settings-box-now.php-243-				'type' => 'sectionend',
+includes/integrations/woocommerce/class-wc-settings-box-now.php:244:				'id'   => 'boxnow_voucher_settings',
+includes/integrations/woocommerce/class-wc-settings-box-now.php-245-			),
+includes/integrations/woocommerce/class-wc-settings-box-now.php-246-		);
+includes/integrations/woocommerce/class-wc-settings-box-now.php-247-	}
+includes/integrations/woocommerce/class-wc-settings-box-now.php-248-}
+--
+includes/services/api/class-delivery-request-service.php-76-
+includes/services/api/class-delivery-request-service.php-77-	/**
+includes/services/api/class-delivery-request-service.php-78-	 * Prepare delivery request data from order.
+includes/services/api/class-delivery-request-service.php-79-	 *
+includes/services/api/class-delivery-request-service.php-80-	 * @param \WC_Order $order             Order object.
+includes/services/api/class-delivery-request-service.php:81:	 * @param int       $num_vouchers      Number of vouchers.
+includes/services/api/class-delivery-request-service.php-82-	 * @param int|null  $compartment_size  Single compartment size (1=small, 2=medium, 3=large).
+includes/services/api/class-delivery-request-service.php-83-	 * @return array
+includes/services/api/class-delivery-request-service.php-84-	 */
+includes/services/api/class-delivery-request-service.php:85:	public function prepare_delivery_data( $order, $num_vouchers = 1, $compartment_size = null ) {
+includes/services/api/class-delivery-request-service.php-86-		$payment_method         = $order->get_payment_method();
+includes/services/api/class-delivery-request-service.php-87-		$is_cod                 = 'cod' === $payment_method;
+includes/services/api/class-delivery-request-service.php:88:		$send_voucher_via_email = 'email' === get_option( 'boxnow_voucher_option', 'button' );
+includes/services/api/class-delivery-request-service.php-89-
+includes/services/api/class-delivery-request-service.php-90-		$items = array();
+includes/services/api/class-delivery-request-service.php:91:		for ( $i = 0; $i < $num_vouchers; $i++ ) {
+includes/services/api/class-delivery-request-service.php-92-			$item_data = array(
+includes/services/api/class-delivery-request-service.php-93-				'value'  => number_format( (float) $order->get_subtotal(), 2, '.', '' ),
+includes/services/api/class-delivery-request-service.php-94-				'weight' => $this->calculate_order_weight( $order ),
+includes/services/api/class-delivery-request-service.php-95-			);
+includes/services/api/class-delivery-request-service.php-96-
+includes/services/api/class-delivery-request-service.php-97-			// Use manually provided compartment size if available
+includes/services/api/class-delivery-request-service.php-98-			if ( null !== $compartment_size ) {
+includes/services/api/class-delivery-request-service.php-99-				$item_data['compartmentSize'] = (int) $compartment_size;
+includes/services/api/class-delivery-request-service.php-100-			}
+includes/services/api/class-delivery-request-service.php-101-
+includes/services/api/class-delivery-request-service.php-102-			$items[] = $item_data;
+includes/services/api/class-delivery-request-service.php-103-		}
+includes/services/api/class-delivery-request-service.php-104-
+includes/services/api/class-delivery-request-service.php-105-		$data = array(
+includes/services/api/class-delivery-request-service.php:106:			'notifyOnAccepted'    => $send_voucher_via_email ? get_option( 'boxnow_voucher_email', '' ) : '',
+includes/services/api/class-delivery-request-service.php-107-			'orderNumber'         => (string) $order->get_id(),
+includes/services/api/class-delivery-request-service.php-108-			'invoiceValue'        => $is_cod ? number_format( $order->get_total(), 2, '.', '' ) : '0',
+includes/services/api/class-delivery-request-service.php-109-			'paymentMode'         => $is_cod ? 'cod' : 'prepaid',
+includes/services/api/class-delivery-request-service.php-110-			'amountToBeCollected' => $is_cod ? number_format( $order->get_total(), 2, '.', '' ) : '0',
+includes/services/api/class-delivery-request-service.php-111-			'allowReturn'         => (bool) get_option( 'boxnow_allow_returns', '1' ),
+includes/services/api/class-delivery-request-service.php-112-			'origin'              => array(
+includes/services/api/class-delivery-request-service.php-113-				'contactNumber' => get_option( 'boxnow_mobile_number', '' ),
+includes/services/api/class-delivery-request-service.php:114:				'contactEmail'  => get_option( 'boxnow_voucher_email', '' ),
+includes/services/api/class-delivery-request-service.php-115-				'locationId'    => $order->get_meta( '_selected_warehouse', true ),
+includes/services/api/class-delivery-request-service.php-116-			),
+includes/services/api/class-delivery-request-service.php-117-			'destination'         => array(
+includes/services/api/class-delivery-request-service.php-118-				'contactName'   => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
+includes/services/api/class-delivery-request-service.php-119-				'contactNumber' => $this->normalize_phone_number( $order->get_billing_phone() ),
+includes/services/api/class-delivery-request-service.php-120-				'contactEmail'  => $order->get_billing_email(),
+includes/services/api/class-delivery-request-service.php-121-				'locationId'    => $order->get_meta( '_boxnow_locker_id', true ),
+includes/services/api/class-delivery-request-service.php-122-			),
+includes/services/api/class-delivery-request-service.php-123-			'parcels'             => $items,
+includes/services/api/class-delivery-request-service.php-124-		);
+--
+includes/services/orders/class-order-handler.php-74-
+includes/services/orders/class-order-handler.php-75-		if ( ! $order || ! Order_Helper::is_box_now_order( $order ) ) {
+includes/services/orders/class-order-handler.php-76-			return;
+includes/services/orders/class-order-handler.php-77-		}
+includes/services/orders/class-order-handler.php-78-
+includes/services/orders/class-order-handler.php:79:		if ( $order->get_meta( '_voucher_created', true ) ) {
+includes/services/orders/class-order-handler.php-80-			return;
+includes/services/orders/class-order-handler.php-81-		}
+includes/services/orders/class-order-handler.php-82-
+includes/services/orders/class-order-handler.php-83-		$data = $this->delivery_service->prepare_delivery_data( $order );
+includes/services/orders/class-order-handler.php-84-		$response = $this->delivery_service->create_delivery_request( $data );
+includes/services/orders/class-order-handler.php-85-
+includes/services/orders/class-order-handler.php-86-		if ( $response && isset( $response['parcels'][0]['id'] ) ) {
+includes/services/orders/class-order-handler.php-87-			$order->update_meta_data( '_boxnow_parcel_id', $response['parcels'][0]['id'] );
+includes/services/orders/class-order-handler.php:88:			$order->update_meta_data( '_voucher_created', 'yes' );
+includes/services/orders/class-order-handler.php-89-			$order->save();
+includes/services/orders/class-order-handler.php-90-		}
+includes/services/orders/class-order-handler.php-91-	}
+includes/services/orders/class-order-handler.php-92-
+includes/services/orders/class-order-handler.php-93-	/**
+includes/services/orders/class-order-handler.php-94-	 * Handle order cancellation.
+includes/services/orders/class-order-handler.php-95-	 *
+includes/services/orders/class-order-handler.php-96-	 * @param int       $order_id   Order ID.
+includes/services/orders/class-order-handler.php-97-	 * @param string    $old_status Old status.
+includes/services/orders/class-order-handler.php-98-	 * @param string    $new_status New status.
+--
+includes/services/ajax/class-order-ajax-handler.php-17-use CodeSoup\BoxNow\Traits\Logging_Trait;
+includes/services/ajax/class-order-ajax-handler.php-18-
+includes/services/ajax/class-order-ajax-handler.php-19-defined( 'ABSPATH' ) || exit;
+includes/services/ajax/class-order-ajax-handler.php-20-
+includes/services/ajax/class-order-ajax-handler.php-21-/**
+includes/services/ajax/class-order-ajax-handler.php:22: * Handles AJAX requests for order voucher management.
+includes/services/ajax/class-order-ajax-handler.php-23- */
+includes/services/ajax/class-order-ajax-handler.php-24-class Order_AJAX_Handler {
+includes/services/ajax/class-order-ajax-handler.php-25-
+includes/services/ajax/class-order-ajax-handler.php-26-	use Logging_Trait;
+includes/services/ajax/class-order-ajax-handler.php-27-
+includes/services/ajax/class-order-ajax-handler.php-28-	/**
+includes/services/ajax/class-order-ajax-handler.php-29-	 * Hooker instance.
+includes/services/ajax/class-order-ajax-handler.php-30-	 *
+includes/services/ajax/class-order-ajax-handler.php-31-	 * @var Hooker
+includes/services/ajax/class-order-ajax-handler.php-32-	 */
+--
+includes/services/ajax/class-order-ajax-handler.php-70-
+includes/services/ajax/class-order-ajax-handler.php-71-	/**
+includes/services/ajax/class-order-ajax-handler.php-72-	 * Initialize AJAX hooks.
+includes/services/ajax/class-order-ajax-handler.php-73-	 */
+includes/services/ajax/class-order-ajax-handler.php-74-	public function init(): void {
+includes/services/ajax/class-order-ajax-handler.php:75:		$this->hooker->add_action( 'wp_ajax_create_box_now_vouchers', $this, 'ajax_create_box_now_vouchers' );
+includes/services/ajax/class-order-ajax-handler.php:76:		$this->hooker->add_action( 'wp_ajax_cancel_voucher', $this, 'ajax_cancel_voucher' );
+includes/services/ajax/class-order-ajax-handler.php:77:		$this->hooker->add_action( 'wp_ajax_print_box_now_voucher', $this, 'ajax_print_box_now_voucher' );
+includes/services/ajax/class-order-ajax-handler.php-78-	}
+includes/services/ajax/class-order-ajax-handler.php-79-
+includes/services/ajax/class-order-ajax-handler.php-80-	/**
+includes/services/ajax/class-order-ajax-handler.php:81:	 * Handle AJAX request to create vouchers.
+includes/services/ajax/class-order-ajax-handler.php-82-	 */
+includes/services/ajax/class-order-ajax-handler.php:83:	public function ajax_create_box_now_vouchers(): void {
+includes/services/ajax/class-order-ajax-handler.php-84-		// Verify nonce.
+includes/services/ajax/class-order-ajax-handler.php-85-		if ( ! $this->verify_nonce() ) {
+includes/services/ajax/class-order-ajax-handler.php-86-			wp_send_json_error( __( 'Security check failed.', 'codesoup-woo-boxnow' ), 403 );
+includes/services/ajax/class-order-ajax-handler.php-87-		}
+includes/services/ajax/class-order-ajax-handler.php-88-
+includes/services/ajax/class-order-ajax-handler.php-89-		// Verify permissions.
+includes/services/ajax/class-order-ajax-handler.php-90-		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+includes/services/ajax/class-order-ajax-handler.php-91-			wp_send_json_error( __( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), 403 );
+includes/services/ajax/class-order-ajax-handler.php-92-		}
+includes/services/ajax/class-order-ajax-handler.php-93-
+includes/services/ajax/class-order-ajax-handler.php-94-		$order_id          = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
+includes/services/ajax/class-order-ajax-handler.php:95:		$voucher_quantity  = isset( $_POST['voucher_quantity'] ) ? absint( $_POST['voucher_quantity'] ) : 1;
+includes/services/ajax/class-order-ajax-handler.php-96-		$compartment_size  = isset( $_POST['compartment_size'] ) ? absint( $_POST['compartment_size'] ) : null;
+includes/services/ajax/class-order-ajax-handler.php-97-
+includes/services/ajax/class-order-ajax-handler.php-98-		if ( ! $order_id ) {
+includes/services/ajax/class-order-ajax-handler.php-99-			wp_send_json_error( __( 'Invalid order ID.', 'codesoup-woo-boxnow' ), 400 );
+includes/services/ajax/class-order-ajax-handler.php-100-		}
+includes/services/ajax/class-order-ajax-handler.php-101-
+includes/services/ajax/class-order-ajax-handler.php-102-		$order = wc_get_order( $order_id );
+includes/services/ajax/class-order-ajax-handler.php-103-		if ( ! $order || ! Order_Helper::is_box_now_order( $order ) ) {
+includes/services/ajax/class-order-ajax-handler.php-104-			wp_send_json_error( __( 'Invalid BoxNow order.', 'codesoup-woo-boxnow' ), 400 );
+includes/services/ajax/class-order-ajax-handler.php-105-		}
+includes/services/ajax/class-order-ajax-handler.php-106-
+includes/services/ajax/class-order-ajax-handler.php-107-		try {
+includes/services/ajax/class-order-ajax-handler.php:108:			$data = $this->delivery_service->prepare_delivery_data( $order, $voucher_quantity, $compartment_size );
+includes/services/ajax/class-order-ajax-handler.php-109-
+includes/services/ajax/class-order-ajax-handler.php-110-			$response = $this->delivery_service->create_delivery_request( $data );
+includes/services/ajax/class-order-ajax-handler.php-111-
+includes/services/ajax/class-order-ajax-handler.php-112-			if ( ! $response || ! isset( $response['parcels'] ) ) {
+includes/services/ajax/class-order-ajax-handler.php-113-				throw new \Exception( __( 'Failed to create delivery request.', 'codesoup-woo-boxnow' ) );
+includes/services/ajax/class-order-ajax-handler.php-114-			}
+includes/services/ajax/class-order-ajax-handler.php-115-
+includes/services/ajax/class-order-ajax-handler.php-116-			$parcel_ids = array_column( $response['parcels'], 'id' );
+includes/services/ajax/class-order-ajax-handler.php-117-
+includes/services/ajax/class-order-ajax-handler.php-118-			// Store parcel IDs in order meta.
+--
+includes/services/ajax/class-order-ajax-handler.php-120-			$order->update_meta_data( Meta_Keys::VOUCHERS_CREATED, 1 );
+includes/services/ajax/class-order-ajax-handler.php-121-			$order->save();
+includes/services/ajax/class-order-ajax-handler.php-122-
+includes/services/ajax/class-order-ajax-handler.php-123-			$this->log_info(
+includes/services/ajax/class-order-ajax-handler.php-124-				sprintf(
+includes/services/ajax/class-order-ajax-handler.php:125:					'Created %d vouchers for order #%d',
+includes/services/ajax/class-order-ajax-handler.php-126-					count( $parcel_ids ),
+includes/services/ajax/class-order-ajax-handler.php-127-					$order_id
+includes/services/ajax/class-order-ajax-handler.php-128-				)
+includes/services/ajax/class-order-ajax-handler.php-129-			);
+includes/services/ajax/class-order-ajax-handler.php-130-
+includes/services/ajax/class-order-ajax-handler.php-131-			wp_send_json_success(
+includes/services/ajax/class-order-ajax-handler.php-132-				array(
+includes/services/ajax/class-order-ajax-handler.php-133-					'new_parcel_ids' => $parcel_ids,
+includes/services/ajax/class-order-ajax-handler.php-134-					'message'        => sprintf(
+includes/services/ajax/class-order-ajax-handler.php:135:						// translators: %d: number of vouchers created.
+includes/services/ajax/class-order-ajax-handler.php:136:						__( '%d voucher(s) created successfully.', 'codesoup-woo-boxnow' ),
+includes/services/ajax/class-order-ajax-handler.php-137-						count( $parcel_ids )
+includes/services/ajax/class-order-ajax-handler.php-138-					),
+includes/services/ajax/class-order-ajax-handler.php-139-				)
+includes/services/ajax/class-order-ajax-handler.php-140-			);
+includes/services/ajax/class-order-ajax-handler.php-141-
+includes/services/ajax/class-order-ajax-handler.php-142-		} catch ( \Exception $e ) {
+includes/services/ajax/class-order-ajax-handler.php:143:			$this->log_error( 'Failed to create vouchers: ' . $e->getMessage() );
+includes/services/ajax/class-order-ajax-handler.php-144-			wp_send_json_error( $e->getMessage(), 500 );
+includes/services/ajax/class-order-ajax-handler.php-145-		}
+includes/services/ajax/class-order-ajax-handler.php-146-	}
+includes/services/ajax/class-order-ajax-handler.php-147-
+includes/services/ajax/class-order-ajax-handler.php-148-
+includes/services/ajax/class-order-ajax-handler.php-149-
+includes/services/ajax/class-order-ajax-handler.php-150-	/**
+includes/services/ajax/class-order-ajax-handler.php:151:	 * Handle AJAX request to cancel voucher.
+includes/services/ajax/class-order-ajax-handler.php-152-	 */
+includes/services/ajax/class-order-ajax-handler.php:153:	public function ajax_cancel_voucher(): void {
+includes/services/ajax/class-order-ajax-handler.php-154-		// Verify nonce.
+includes/services/ajax/class-order-ajax-handler.php-155-		if ( ! $this->verify_nonce() ) {
+includes/services/ajax/class-order-ajax-handler.php-156-			wp_send_json_error( __( 'Security check failed.', 'codesoup-woo-boxnow' ), 403 );
+includes/services/ajax/class-order-ajax-handler.php-157-		}
+includes/services/ajax/class-order-ajax-handler.php-158-
+includes/services/ajax/class-order-ajax-handler.php-159-		// Verify permissions.
+includes/services/ajax/class-order-ajax-handler.php-160-		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+includes/services/ajax/class-order-ajax-handler.php-161-			wp_send_json_error( __( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), 403 );
+includes/services/ajax/class-order-ajax-handler.php-162-		}
+includes/services/ajax/class-order-ajax-handler.php-163-
+--
+includes/services/ajax/class-order-ajax-handler.php-204-			);
+includes/services/ajax/class-order-ajax-handler.php-205-
+includes/services/ajax/class-order-ajax-handler.php-206-			wp_send_json_success( $parcel_id );
+includes/services/ajax/class-order-ajax-handler.php-207-
+includes/services/ajax/class-order-ajax-handler.php-208-		} catch ( \Exception $e ) {
+includes/services/ajax/class-order-ajax-handler.php:209:			$this->log_error( 'Failed to cancel voucher: ' . $e->getMessage() );
+includes/services/ajax/class-order-ajax-handler.php-210-			wp_send_json_error( $e->getMessage(), 500 );
+includes/services/ajax/class-order-ajax-handler.php-211-		}
+includes/services/ajax/class-order-ajax-handler.php-212-	}
+includes/services/ajax/class-order-ajax-handler.php-213-
+includes/services/ajax/class-order-ajax-handler.php-214-	/**
+includes/services/ajax/class-order-ajax-handler.php:215:	 * Handle AJAX request to print voucher PDF.
+includes/services/ajax/class-order-ajax-handler.php-216-	 */
+includes/services/ajax/class-order-ajax-handler.php:217:	public function ajax_print_box_now_voucher(): void {
+includes/services/ajax/class-order-ajax-handler.php-218-		// Verify permissions.
+includes/services/ajax/class-order-ajax-handler.php-219-		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+includes/services/ajax/class-order-ajax-handler.php-220-			wp_die( esc_html__( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ) );
+includes/services/ajax/class-order-ajax-handler.php-221-		}
+includes/services/ajax/class-order-ajax-handler.php-222-
+includes/services/ajax/class-order-ajax-handler.php-223-		$parcel_id = isset( $_GET['parcel_id'] ) ? sanitize_text_field( wp_unslash( $_GET['parcel_id'] ) ) : '';
+includes/services/ajax/class-order-ajax-handler.php-224-
+includes/services/ajax/class-order-ajax-handler.php-225-		if ( empty( $parcel_id ) ) {
+includes/services/ajax/class-order-ajax-handler.php-226-			wp_die( esc_html__( 'Parcel ID was not found.', 'codesoup-woo-boxnow' ) );
+includes/services/ajax/class-order-ajax-handler.php-227-		}
