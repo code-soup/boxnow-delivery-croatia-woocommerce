@@ -53,6 +53,7 @@ dist
 _local
 _remote
 .cursor
+backups
 
 # Logs
 logs
