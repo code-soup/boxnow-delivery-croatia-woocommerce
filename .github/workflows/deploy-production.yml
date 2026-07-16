@@ -1,88 +1,67 @@
-name: Deploy Production Build
+name: Prepare Production Release
 
 on:
+  workflow_dispatch: # Manual trigger only
   push:
     branches:
-      - develop
+      - develop # Auto-trigger on develop push (optional)
 
 jobs:
-  build-and-deploy:
+  prepare-production:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout develop branch
         uses: actions/checkout@v4
         with:
           ref: develop
           fetch-depth: 0
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
-          tools: composer:v2
-      
-      - name: Install Node dependencies
-        run: npm ci
-      
-      - name: Install Composer dependencies
+          tools: composer
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install Node dependencies and build
+        run: |
+          npm ci
+          npm run build:prod
+
+      - name: Install production PHP dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
-      
-      - name: Build production assets
-        run: npm run build:prod
-      
-      - name: Prepare production files
+
+      - name: Prepare clean production directory
         run: |
-          # Remove development files
-          rm -rf node_modules
-          rm -rf src
-          rm -rf .github
-          rm -rf agent-skills
-          rm -rf backups
-          rm -rf docs
-          rm -f .gitignore
-          rm -f .eslintrc.*
-          rm -f babel.config.js
-          rm -f eslint.config.js
-          rm -f package.json
-          rm -f package-lock.json
-          rm -f composer.json
-          rm -f composer.lock
-          rm -f phpcs.xml
-          rm -f webpack.config.js
-          
-          # Keep only production files
-          echo "Production files prepared"
-      
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-      
-      - name: Deploy to master branch
-        run: |
-          # Create orphan master branch if doesn't exist
-          git checkout --orphan master || git checkout master
-          
-          # Remove all files from master
-          git rm -rf . || true
-          
-          # Copy production files from develop
-          git checkout develop -- .
-          
-          # Remove development files again (after checkout)
-          rm -rf node_modules src .github agent-skills backups docs
-          rm -f .gitignore .eslintrc.* babel.config.js eslint.config.js
-          rm -f package.json package-lock.json composer.json composer.lock phpcs.xml webpack.config.js
-          
+          # Create temporary directory for production files
+          mkdir -p /tmp/production-release
+
+          # Copy production files
+          cp -r includes /tmp/production-release/
+          cp -r vendor /tmp/production-release/
+          cp -r dist /tmp/production-release/
+          [ -d languages ] && cp -r languages /tmp/production-release/ || echo "No languages directory"
+          [ -d templates ] && cp -r templates /tmp/production-release/ || echo "No templates directory"
+          cp index.php /tmp/production-release/
+          cp run.php /tmp/production-release/
+          cp uninstall.php /tmp/production-release/
+          [ -f LICENSE.txt ] && cp LICENSE.txt /tmp/production-release/ || echo "No LICENSE.txt"
+          [ -f README.md ] && cp README.md /tmp/production-release/ || echo "No README.md"
+          [ -f CHANGELOG.md ] && cp CHANGELOG.md /tmp/production-release/ || echo "No CHANGELOG.md"
+
           # Create production .gitignore
-          cat > .gitignore << 'EOF'
+          cat > /tmp/production-release/.gitignore << 'EOF'
           .DS_Store
           .DS_Store?
           Thumbs.db
@@ -94,10 +73,22 @@ jobs:
           .idea
           *.log
           EOF
-          
-          # Add all production files
-          git add -A
-          
-          # Commit and push
-          git commit -m "Production build from develop $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
-          git push origin master --force
+
+      - name: Initialize production repository
+        run: |
+          cd /tmp/production-release
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Production release from develop - $(date +'%Y-%m-%d %H:%M:%S')"
+
+      - name: Force push to master
+        run: |
+          cd /tmp/production-release
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin HEAD:master --force
+
+      - name: Clean up
+        run: |
+          rm -rf /tmp/production-release
