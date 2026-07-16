@@ -52,7 +52,6 @@ jobs:
           cp -r dist /tmp/production-release/
           [ -d languages ] && cp -r languages /tmp/production-release/ || echo "No languages directory"
           [ -d templates ] && cp -r templates /tmp/production-release/ || echo "No templates directory"
-          [ -d .github/assets ] && cp -r .github/assets /tmp/production-release/.github/ || echo "No screenshots"
           cp index.php /tmp/production-release/
           cp run.php /tmp/production-release/
           cp uninstall.php /tmp/production-release/
