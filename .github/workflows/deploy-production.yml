@@ -1,20 +1,20 @@
 name: Deploy Production
 
 on:
-  workflow_dispatch: # Manual trigger
-  push:
-    branches:
-      - develop # Auto-trigger on develop push
+    workflow_dispatch: # Manual trigger
+    push:
+        branches:
+            - develop # Auto-trigger on develop push
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout develop branch
-        uses: actions/checkout@v4
-        with:
-          ref: develop
-          fetch-depth: 0
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout develop branch
+              uses: actions/checkout@v4
+              with:
+                  ref: develop
+                  fetch-depth: 0
 
-      - name: WordPress Plugin Production Deploy
-        uses: code-soup/wp-plugin-production-deploy@v1.0.0
+            - name: WordPress Plugin Production Deploy
+              uses: code-soup/wp-plugin-production-deploy@v1.0.0
