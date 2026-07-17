@@ -1,0 +1,48 @@
+# WordPress Plugin Production Exclusions
+# Works like .gitignore - one pattern per line
+# Lines starting with # are comments
+# Blank lines are ignored
+
+# Development files
+src/
+node_modules/
+.github/
+agent-skills/
+docs/
+backups/
+
+# Build config files
+package.json
+package-lock.json
+composer.json
+composer.lock
+webpack.config.js
+babel.config.js
+.eslintrc.js
+.eslintrc.json
+phpcs.xml
+phpcs.xml.dist
+.editorconfig
+.gitignore
+.gitattributes
+.deployignore
+
+# Vendor binaries and tests
+vendor/bin
+vendor/*/tests
+vendor/*/test
+vendor/composer/installed.json
+
+# Development-only vendor packages
+vendor/phpunit/
+vendor/squizlabs/
+vendor/dealerdirect/
+
+# Logs and OS files
+*.log
+.DS_Store
+.DS_Store?
+Thumbs.db
+._*
+.Spotlight-V100
+.Trashes
