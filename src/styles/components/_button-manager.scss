@@ -1,0 +1,33 @@
+/**
+ * Button Manager Component Styles
+ * Pick a locker button styling
+ */
+
+// Locker selection buttons (match PHP-generated classes)
+#box-now-delivery-button,
+#box-now-delivery-button-blocks,
+.box-now-delivery-button {
+	border-radius: 6px;
+	box-shadow: 0px 4px 0px 0px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s;
+	margin-top: 6px;
+	margin-left: 5px;
+	position: relative;
+	background-color: var(--boxnow-button-color, #6CD04E);
+	color: #fff;
+
+	&:hover {
+		box-shadow: 0px 2px 0px 0px rgba(0, 0, 0, 0.1);
+		transform: translateY(2px);
+	}
+
+	// Visibility states
+	&.hidden {
+		display: none;
+	}
+
+	&.visible,
+	&.visible-inline {
+		display: inline-block;
+	}
+}

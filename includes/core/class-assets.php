@@ -78,13 +78,14 @@ final class Assets {
 	 * @return string The full URL to the asset.
 	 */
 	public function get_asset_url( string $asset_key ): string {
-		// In development, the asset key is the filename.
-		$path = $asset_key;
+		// Always try to get from manifest first if it exists
+		$manifest = $this->get_manifest();
 
-		// In production, get the hashed filename from the manifest.
-		if ( $this->is_production ) {
-			$manifest = $this->get_manifest();
-			$path     = $manifest[ $asset_key ] ?? $asset_key;
+		if ( ! empty( $manifest ) && isset( $manifest[ $asset_key ] ) ) {
+			$path = $manifest[ $asset_key ];
+		} else {
+			// Fallback: use the asset key as the path
+			$path = $asset_key;
 		}
 
 		// Validate path - prevent directory traversal.
@@ -100,12 +101,14 @@ final class Assets {
 	 * @return bool True if asset exists, false otherwise.
 	 */
 	public function asset_exists( string $asset_key ): bool {
-		if ( $this->is_production ) {
-			$manifest = $this->get_manifest();
-			return isset( $manifest[ $asset_key ] );
+		// Always check manifest if it exists
+		$manifest = $this->get_manifest();
+
+		if ( ! empty( $manifest ) && isset( $manifest[ $asset_key ] ) ) {
+			return true;
 		}
 
-		// In development, check if file exists in dist directory.
+		// Fallback: In development without manifest, check if file exists directly
 		$file_path = $this->plugin->get_config( 'PLUGIN_BASE_PATH' ) . 'dist/' . $asset_key;
 		return file_exists( $file_path );
 	}

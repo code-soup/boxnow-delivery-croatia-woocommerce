@@ -2,7 +2,7 @@
  * Manages shipping address population and restoration.
  * No jQuery - uses native DOM APIs.
  */
-import { DOMSelectors, Timeouts, CustomEvents } from '../core/index.js';
+import { ElementIDs, Selectors, TimeoutConstants, EventNames } from '../core/index.js';
 
 export class AddressService {
 	/**
@@ -24,12 +24,12 @@ export class AddressService {
 		}
 
 		const original = {
-			address_1: this.#getFieldValue(DOMSelectors.SHIPPING_ADDRESS_1),
-			address_2: this.#getFieldValue(DOMSelectors.SHIPPING_ADDRESS_2),
-			city: this.#getFieldValue(DOMSelectors.SHIPPING_CITY),
-			postcode: this.#getFieldValue(DOMSelectors.SHIPPING_POSTCODE),
-			country: this.#getFieldValue(DOMSelectors.SHIPPING_COUNTRY),
-			state: this.#getFieldValue(DOMSelectors.SHIPPING_STATE),
+			address_1: this.#getFieldValue(ElementIDs.SHIPPING_ADDRESS_1),
+			address_2: this.#getFieldValue(ElementIDs.SHIPPING_ADDRESS_2),
+			city: this.#getFieldValue(ElementIDs.SHIPPING_CITY),
+			postcode: this.#getFieldValue(ElementIDs.SHIPPING_POSTCODE),
+			country: this.#getFieldValue(ElementIDs.SHIPPING_COUNTRY),
+			state: this.#getFieldValue(ElementIDs.SHIPPING_STATE),
 		};
 
 		this.state.set('originalAddress', original);
@@ -40,18 +40,18 @@ export class AddressService {
 	 */
 	restore() {
 		const original = this.state.get('originalAddress');
-		
+
 		if (!original) {
 			return;
 		}
 
 		// Restore all fields
-		this.#setFieldValue(DOMSelectors.SHIPPING_ADDRESS_1, original.address_1, true);
-		this.#setFieldValue(DOMSelectors.SHIPPING_ADDRESS_2, original.address_2, true);
-		this.#setFieldValue(DOMSelectors.SHIPPING_CITY, original.city, true);
-		this.#setFieldValue(DOMSelectors.SHIPPING_POSTCODE, original.postcode, true);
-		this.#setFieldValue(DOMSelectors.SHIPPING_COUNTRY, original.country, true);
-		this.#setFieldValue(DOMSelectors.SHIPPING_STATE, original.state, true);
+		this.#setFieldValue(ElementIDs.SHIPPING_ADDRESS_1, original.address_1, true);
+		this.#setFieldValue(ElementIDs.SHIPPING_ADDRESS_2, original.address_2, true);
+		this.#setFieldValue(ElementIDs.SHIPPING_CITY, original.city, true);
+		this.#setFieldValue(ElementIDs.SHIPPING_POSTCODE, original.postcode, true);
+		this.#setFieldValue(ElementIDs.SHIPPING_COUNTRY, original.country, true);
+		this.#setFieldValue(ElementIDs.SHIPPING_STATE, original.state, true);
 
 		// Clear stored original
 		this.state.set('originalAddress', null);
@@ -80,33 +80,33 @@ export class AddressService {
 		const needsCheckboxChange = this.#enableShipToDifferent();
 
 		// Extract locker data
-		const addressLine = lockerData.addressLine1 || '';
+		const addressLine1 = lockerData.addressLine1 || '';
 		const city = lockerData.city || lockerData.addressLine2 || '';
 		const postalCode = lockerData.postalCode || '';
 		const country = lockerData.country || '';
 		const lockerName = lockerData.name || '';
 
-		// Build full address line 1
-		let fullAddress = lockerName;
-		if (addressLine) {
-			fullAddress += (fullAddress ? ' - ' : '') + addressLine;
-		}
+		// Address line 1 is the street address
+		const shippingAddress1 = addressLine1;
 
-		// Build address line 2 (note)
-		const addressLine2 = lockerData.note 
-			? lockerData.note.substring(0, 100) 
-			: '';
+		// Address line 2 combines locker name and any note
+		let shippingAddress2 = lockerName;
+		if (lockerData.note) {
+			shippingAddress2 += (shippingAddress2 ? ' - ' : '') + lockerData.note;
+		}
+		// Limit to 100 chars
+		shippingAddress2 = shippingAddress2.substring(0, 100);
 
 		// Wait for shipping fields to be visible if checkbox changed
-		const delay = needsCheckboxChange ? Timeouts.ADDRESS_POPULATE_DELAY : 0;
+		const delay = needsCheckboxChange ? TimeoutConstants.ADDRESS_POPULATE_DELAY : 0;
 
 		setTimeout(() => {
 			// Set all fields without triggering individual change events
-			this.#setFieldValue(DOMSelectors.SHIPPING_ADDRESS_1, fullAddress, false);
-			this.#setFieldValue(DOMSelectors.SHIPPING_ADDRESS_2, addressLine2, false);
-			this.#setFieldValue(DOMSelectors.SHIPPING_CITY, city, false);
-			this.#setFieldValue(DOMSelectors.SHIPPING_POSTCODE, postalCode, false);
-			this.#setFieldValue(DOMSelectors.SHIPPING_COUNTRY, country, false);
+			this.#setFieldValue(ElementIDs.SHIPPING_ADDRESS_1, shippingAddress1, false);
+			this.#setFieldValue(ElementIDs.SHIPPING_ADDRESS_2, shippingAddress2, false);
+			this.#setFieldValue(ElementIDs.SHIPPING_CITY, city, false);
+			this.#setFieldValue(ElementIDs.SHIPPING_POSTCODE, postalCode, false);
+			this.#setFieldValue(ElementIDs.SHIPPING_COUNTRY, country, false);
 
 			// Single checkout update trigger
 			this.#triggerCheckoutUpdate();
@@ -114,7 +114,7 @@ export class AddressService {
 			// Reset flag after delay to ensure update completes
 			setTimeout(() => {
 				this.state.set('isPopulatingAddress', false);
-			}, Timeouts.ADDRESS_POPULATE_RESET);
+			}, TimeoutConstants.ADDRESS_POPULATE_RESET);
 
 			this.eventBus.emit('address:populated', lockerData);
 		}, delay);
@@ -126,7 +126,7 @@ export class AddressService {
 	 * @returns {boolean} True if checkbox was changed
 	 */
 	#enableShipToDifferent() {
-		const checkbox = document.getElementById(DOMSelectors.SHIP_TO_DIFFERENT_CHECKBOX);
+		const checkbox = document.getElementById(ElementIDs.SHIP_TO_DIFFERENT_CHECKBOX);
 
 		if (!checkbox || checkbox.checked) {
 			return false;
@@ -134,10 +134,14 @@ export class AddressService {
 
 		checkbox.checked = true;
 
-		// Manually show shipping fields
-		const shippingAddress = document.querySelector(DOMSelectors.SHIPPING_ADDRESS_WRAPPER);
+		// Trigger change event to let WooCommerce handle showing fields
+		checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+
+		// Also manually show shipping fields as fallback
+		const shippingAddress = document.querySelector(Selectors.SHIPPING_ADDRESS_WRAPPER);
 		if (shippingAddress) {
-			shippingAddress.style.display = 'block';
+			shippingAddress.classList.remove('hidden');
+			shippingAddress.classList.add('visible');
 		}
 
 		return true;
@@ -179,6 +183,6 @@ export class AddressService {
 	 */
 	#triggerCheckoutUpdate() {
 		const body = document.body;
-		body.dispatchEvent(new Event(CustomEvents.UPDATE_CHECKOUT, { bubbles: true }));
+		body.dispatchEvent(new Event(EventNames.UPDATE_CHECKOUT, { bubbles: true }));
 	}
 }

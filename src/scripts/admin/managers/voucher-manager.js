@@ -2,7 +2,7 @@
  * Manages voucher creation and cancellation in admin order page.
  * No jQuery - uses native fetch.
  */
-import { safeJsonParse, isStringArray, sanitizeErrorMessage } from '../checkout/core/ValidationHelpers.js';
+import { safeJsonParse, isStringArray, sanitizeErrorMessage } from '../../checkout/utils/validation-helpers.js';
 
 export class VoucherManager {
 	/**

@@ -48,11 +48,11 @@ const config = {
 	 */
 	entry: {
 		// Admin bundles
-		"admin-order": ["./scripts/admin/order.js"],
+		"admin-order": ["./scripts/admin/index.js"],
 
 		// Frontend bundles
-		"checkout": ["./scripts/checkout/checkout.js", "./styles/checkout.scss"],
-		"checkout-blocks": ["./scripts/checkout/blocks.js"],
+		"checkout": ["./scripts/checkout/index.js", "./styles/checkout.scss"],
+		"checkout-blocks": ["./scripts/checkout/index-blocks.js"],
 	},
 
 	// Path configuration (using path utility)

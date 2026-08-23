@@ -64,6 +64,7 @@ class Shipping_Method extends WC_Shipping_Method {
 		$this->free_delivery_threshold  = $this->get_option( 'free_delivery_threshold' );
 		$this->taxable                  = $this->get_option( 'taxable' );
 
+		// Hook for saving instance settings
 		add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
 	}
 
@@ -71,7 +72,8 @@ class Shipping_Method extends WC_Shipping_Method {
 	 * Initialize form fields.
 	 */
 	public function init_form_fields() {
-		$this->form_fields = array(
+		// For zone-based instances, use instance_form_fields
+		$this->instance_form_fields = array(
 			'enabled'                      => array(
 				'title'   => __( 'Enable/Disable', 'codesoup-woo-boxnow' ),
 				'type'    => 'checkbox',

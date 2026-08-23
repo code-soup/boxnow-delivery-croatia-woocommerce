@@ -1,15 +1,9 @@
 /**
  * Manages embedded map display (inline in checkout).
  */
-import { DOMSelectors } from '../core/index.js';
+import { ElementIDs, CSSClasses, Selectors } from '../core/index.js';
 
 export class EmbeddedManager {
-	/**
-	 * Container IDs/classes
-	 */
-	static AUTO_MAP_ID = 'box_now_delivery_embedded_map';
-	static SHORTCODE_CLASS = 'box-now-delivery-embedded-map-container';
-	static DETAILS_CLASS = 'box-now-selected-locker-details';
 
 	/**
 	 * @param {WidgetService} widgetService - Widget service
@@ -25,17 +19,17 @@ export class EmbeddedManager {
 	 */
 	ensureAutoMapContainer() {
 		// Check if container already exists
-		if (document.getElementById(EmbeddedManager.AUTO_MAP_ID)) {
+		if (document.getElementById(ElementIDs.EMBEDDED_MAP)) {
 			return;
 		}
 
 		// Create container
 		const container = document.createElement('div');
-		container.id = EmbeddedManager.AUTO_MAP_ID;
-		container.style.display = 'none';
+		container.id = ElementIDs.EMBEDDED_MAP;
+		container.className = `${CSSClasses.AUTO_MAP} ${CSSClasses.HIDDEN}`;
 
 		// Insert after shipping method label
-		const label = document.querySelector(DOMSelectors.BOXNOW_METHOD_LABEL);
+		const label = document.querySelector(Selectors.BOXNOW_METHOD_LABEL);
 		if (label) {
 			label.insertAdjacentElement('afterend', container);
 		}
@@ -59,26 +53,15 @@ export class EmbeddedManager {
 
 		// Create locker details container
 		const detailsContainer = document.createElement('div');
-		detailsContainer.className = EmbeddedManager.DETAILS_CLASS;
-		detailsContainer.style.cssText = 'display: none; margin-top: 10px;';
+		detailsContainer.className = `${CSSClasses.LOCKER_DETAILS} ${CSSClasses.EMBEDDED_DETAILS} ${CSSClasses.HIDDEN}`;
 
 		// Create locker info wrapper
 		const lockerInfoContainer = document.createElement('div');
-		lockerInfoContainer.className = 'locker-info-container';
+		lockerInfoContainer.className = 'boxnow-locker-info-container';
 		lockerInfoContainer.appendChild(detailsContainer);
 
-		// Style the main container
-		const isShortcode = container.classList.contains(EmbeddedManager.SHORTCODE_CLASS);
-		const height = isShortcode 
-			? (container.style.height || '80vh') 
-			: '80vh';
-
-		container.style.cssText = `
-			position: relative;
-			width: 100%;
-			height: ${height};
-			overflow: auto;
-		`;
+		// Add class to main container
+		container.classList.add('boxnow-embedded-container');
 
 		// Append iframe and details
 		container.appendChild(iframe);
@@ -93,13 +76,13 @@ export class EmbeddedManager {
 		this.ensureAutoMapContainer();
 
 		// Initialize auto-generated embedded map
-		const autoMap = document.getElementById(EmbeddedManager.AUTO_MAP_ID);
+		const autoMap = document.getElementById(ElementIDs.EMBEDDED_MAP);
 		if (autoMap) {
 			this.initContainer(autoMap);
 		}
 
 		// Initialize shortcode embedded maps
-		const shortcodeMaps = document.querySelectorAll(`.${EmbeddedManager.SHORTCODE_CLASS}`);
+		const shortcodeMaps = document.querySelectorAll(`.${CSSClasses.EMBEDDED_MAP_SHORTCODE}`);
 		shortcodeMaps.forEach(container => this.initContainer(container));
 
 		// Update visibility based on shipping selection
@@ -110,14 +93,16 @@ export class EmbeddedManager {
 	 * Show embedded maps
 	 */
 	show() {
-		const autoMap = document.getElementById(EmbeddedManager.AUTO_MAP_ID);
+		const autoMap = document.getElementById(ElementIDs.EMBEDDED_MAP);
 		if (autoMap) {
-			autoMap.style.display = 'block';
+			autoMap.classList.remove(CSSClasses.HIDDEN);
+			autoMap.classList.add(CSSClasses.VISIBLE);
 		}
 
-		const shortcodeMaps = document.querySelectorAll(`.${EmbeddedManager.SHORTCODE_CLASS}`);
+		const shortcodeMaps = document.querySelectorAll(`.${CSSClasses.EMBEDDED_MAP_SHORTCODE}`);
 		shortcodeMaps.forEach(container => {
-			container.style.display = 'block';
+			container.classList.remove(CSSClasses.HIDDEN);
+			container.classList.add(CSSClasses.VISIBLE);
 		});
 	}
 
@@ -125,14 +110,16 @@ export class EmbeddedManager {
 	 * Hide embedded maps
 	 */
 	hide() {
-		const autoMap = document.getElementById(EmbeddedManager.AUTO_MAP_ID);
+		const autoMap = document.getElementById(ElementIDs.EMBEDDED_MAP);
 		if (autoMap) {
-			autoMap.style.display = 'none';
+			autoMap.classList.remove(CSSClasses.VISIBLE);
+			autoMap.classList.add(CSSClasses.HIDDEN);
 		}
 
-		const shortcodeMaps = document.querySelectorAll(`.${EmbeddedManager.SHORTCODE_CLASS}`);
+		const shortcodeMaps = document.querySelectorAll(`.${CSSClasses.EMBEDDED_MAP_SHORTCODE}`);
 		shortcodeMaps.forEach(container => {
-			container.style.display = 'none';
+			container.classList.remove(CSSClasses.VISIBLE);
+			container.classList.add(CSSClasses.HIDDEN);
 		});
 	}
 

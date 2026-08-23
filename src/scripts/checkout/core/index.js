@@ -1,9 +1,21 @@
 /**
  * Core module exports
  */
-export { LockerState } from './LockerState.js';
-export { LockerStorage } from './LockerStorage.js';
-export { ApiClient } from './ApiClient.js';
-export { EventBus, Events } from './EventBus.js';
-export { DOMSelectors, Timeouts, CustomEvents } from './DOMSelectors.js';
-export { safeJsonParse, isValidLockerData, isStringArray, sanitizeErrorMessage } from './ValidationHelpers.js';
+export { LockerState } from './locker-state.js';
+export { LockerStorage } from './locker-storage.js';
+export { ApiClient } from './api-client.js';
+export { EventBus, Events } from './event-bus.js';
+export { safeJsonParse, isValidLockerData, isStringArray, sanitizeErrorMessage } from '../utils/validation-helpers.js';
+
+// Centralized constants
+export {
+	ElementIDs,
+	CSSClasses,
+	Selectors,
+	StorageKeys,
+	AjaxActions,
+	ShippingMethods,
+	BlocksConstants,
+	TimeoutConstants,
+	EventNames,
+} from './constants.js';

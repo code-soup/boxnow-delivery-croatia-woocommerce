@@ -1,7 +1,8 @@
 /**
  * Manages BoxNow widget integration (iframe creation, URL building, message handling).
  */
-import { DOMSelectors } from '../core/index.js';
+import { Selectors } from '../core/index.js';
+import { logger } from '../utils/logger.js';
 
 export class WidgetService {
 	/**
@@ -57,7 +58,7 @@ export class WidgetService {
 			params.push('gps=no');
 			
 			// Get postal code from billing field
-			const postalCodeField = document.getElementById(DOMSelectors.BILLING_POSTCODE);
+			const postalCodeField = document.getElementById(Selectors.BILLING_POSTCODE);
 			if (postalCodeField && postalCodeField.value) {
 				params.push(`zip=${encodeURIComponent(postalCodeField.value)}`);
 			}
@@ -81,7 +82,7 @@ export class WidgetService {
 	createPopupIframe(country) {
 		const iframe = document.createElement('iframe');
 		iframe.src = this.buildUrl(country, true);
-		iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;';
+		iframe.className = 'boxnow-popup-iframe-fixed';
 		iframe.setAttribute('allowfullscreen', '');
 
 		return iframe;
@@ -95,9 +96,9 @@ export class WidgetService {
 	createEmbeddedIframe(country) {
 		const iframe = document.createElement('iframe');
 		iframe.src = this.buildUrl(country, false);
-		iframe.style.cssText = 'width:100%;height:100%;border:none;';
+		iframe.className = 'boxnow-popup-iframe-embedded';
 		iframe.setAttribute('allowfullscreen', '');
-		
+
 		return iframe;
 	}
 
@@ -150,17 +151,24 @@ export class WidgetService {
 	 * @returns {Object} Normalized locker data
 	 */
 	normalizeLockerData(rawData) {
-		return {
-			locker_id: rawData.locker_id || rawData.lockerId || '',
-			name: rawData.name || rawData.locker_name || '',
-			addressLine1: rawData.addressLine1 || rawData.address || '',
+		logger.logValue('Raw data from widget', rawData);
+		logger.logValue('Raw data keys', Object.keys(rawData));
+
+		const normalized = {
+			locker_id: rawData.boxnowLockerId || rawData.locker_id || rawData.lockerId || '',
+			name: rawData.boxnowLockerName || rawData.name || rawData.locker_name || '',
+			addressLine1: rawData.boxnowLockerAddressLine1 || rawData.addressLine1 || rawData.address || '',
 			addressLine2: rawData.addressLine2 || '',
-			city: rawData.city || '',
-			postalCode: rawData.postalCode || rawData.postal_code || rawData.zip || '',
-			country: rawData.country || '',
+			city: rawData.boxnowLockerAddressLine2 || rawData.city || '',
+			postalCode: rawData.boxnowLockerPostalCode || rawData.postalCode || rawData.postal_code || rawData.zip || '',
+			country: rawData.boxnowCountry || rawData.country || '',
 			note: rawData.note || '',
 			image: rawData.image || rawData.locker_image || '',
 			warehouseId: rawData.warehouseId || rawData.warehouse_id || '',
 		};
+
+		logger.logValue('Normalized data', normalized);
+
+		return normalized;
 	}
 }

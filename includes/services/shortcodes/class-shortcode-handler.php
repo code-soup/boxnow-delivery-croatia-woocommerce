@@ -67,9 +67,12 @@ class Shortcode_Handler {
 			$button_text .= ' - ' . $shipping_method_name;
 		}
 
-		$css_class = 'button box-now-delivery-button';
+		// Use constants for CSS classes
+		$button_base_class = \CodeSoup\BoxNow\Core\Constants::get_css_class( 'BUTTON_BASE' );
+		$css_class         = 'button ' . $button_base_class;
 		if ( $auto_select ) {
-			$css_class .= ' box-now-delivery-button-auto-select';
+			$button_auto_select_class = \CodeSoup\BoxNow\Core\Constants::get_css_class( 'BUTTON_AUTO_SELECT' );
+			$css_class               .= ' ' . $button_auto_select_class;
 		}
 
 		ob_start();

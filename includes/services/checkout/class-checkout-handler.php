@@ -135,11 +135,15 @@ class Checkout_Handler {
 		$shipping_method_name = __( 'BoxNow Delivery by CodeSoup', 'codesoup-woo-boxnow' );
 		$button_color         = get_option( 'boxnow_button_color', '#6CD04E' );
 
+		// Use constants for CSS classes
+		$button_base_class     = \CodeSoup\BoxNow\Core\Constants::get_css_class( 'BUTTON_BASE' );
+		$button_checkbox_class = \CodeSoup\BoxNow\Core\Constants::get_css_class( 'BUTTON_CHECKBOX' );
+
 		?>
 		<span class="codesoup-boxnow-button-wrapper">
 			<button
 				type="button"
-				class="button box-now-delivery-button box-now-delivery-button-checkbox"
+				class="button <?php echo esc_attr( $button_base_class . ' ' . $button_checkbox_class ); ?>"
 				style="display:block; margin-top: 10px; background-color: <?php echo esc_attr( $button_color ); ?> !important; color: #fff !important;"
 			>
 				<?php echo esc_html( $button_text . ' - ' . $shipping_method_name ); ?>

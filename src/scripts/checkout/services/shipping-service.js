@@ -2,13 +2,9 @@
  * Manages shipping method detection and selection.
  * No jQuery - uses native DOM APIs.
  */
-import { DOMSelectors, Timeouts } from '../core/index.js';
+import { Selectors, TimeoutConstants, ShippingMethods, ElementIDs } from '../core/index.js';
 
 export class ShippingService {
-	/**
-	 * Shipping method identifier
-	 */
-	static BOXNOW_METHOD_ID = 'codesoup_box_now_delivery';
 
 	/**
 	 * @param {LockerState} state - Application state
@@ -25,19 +21,26 @@ export class ShippingService {
 	 */
 	isBoxNowSelected() {
 		// Check radio input
-		const radio = document.querySelector(DOMSelectors.SHIPPING_METHOD_RADIO_CHECKED);
+		const radio = document.querySelector(Selectors.SHIPPING_METHOD_RADIO_CHECKED);
+		console.log('[BOXNOW DEBUG] isBoxNowSelected() - radio:', radio);
+		console.log('[BOXNOW DEBUG] isBoxNowSelected() - radio value:', radio?.value);
 
-		if (radio && radio.value.includes(ShippingService.BOXNOW_METHOD_ID)) {
+		if (radio && radio.value.includes(ShippingMethods.BOXNOW_ID)) {
+			console.log('[BOXNOW DEBUG] isBoxNowSelected() - MATCHED radio!');
 			return true;
 		}
 
 		// Fallback: check hidden input (some themes/checkout flows)
-		const hidden = document.querySelector(DOMSelectors.SHIPPING_METHOD_HIDDEN);
+		const hidden = document.querySelector(Selectors.SHIPPING_METHOD_HIDDEN);
+		console.log('[BOXNOW DEBUG] isBoxNowSelected() - hidden:', hidden);
+		console.log('[BOXNOW DEBUG] isBoxNowSelected() - hidden value:', hidden?.value);
 
-		if (hidden && hidden.value.includes(ShippingService.BOXNOW_METHOD_ID)) {
+		if (hidden && hidden.value.includes(ShippingMethods.BOXNOW_ID)) {
+			console.log('[BOXNOW DEBUG] isBoxNowSelected() - MATCHED hidden!');
 			return true;
 		}
 
+		console.log('[BOXNOW DEBUG] isBoxNowSelected() - NO MATCH, returning false');
 		return false;
 	}
 
@@ -46,13 +49,13 @@ export class ShippingService {
 	 * @returns {string|null}
 	 */
 	getSelectedMethod() {
-		const radio = document.querySelector(DOMSelectors.SHIPPING_METHOD_RADIO_CHECKED);
+		const radio = document.querySelector(Selectors.SHIPPING_METHOD_RADIO_CHECKED);
 
 		if (radio) {
 			return radio.value;
 		}
 
-		const hidden = document.querySelector(DOMSelectors.SHIPPING_METHOD_HIDDEN);
+		const hidden = document.querySelector(Selectors.SHIPPING_METHOD_HIDDEN);
 
 		return hidden ? hidden.value : null;
 	}
@@ -67,7 +70,7 @@ export class ShippingService {
 			return false;
 		}
 
-		const boxNowRadio = document.querySelector(DOMSelectors.BOXNOW_METHOD_RADIO);
+		const boxNowRadio = document.querySelector(Selectors.BOXNOW_METHOD_RADIO);
 
 		if (!boxNowRadio || boxNowRadio.checked) {
 			return false;
@@ -83,7 +86,7 @@ export class ShippingService {
 		// Reset flag after delay
 		setTimeout(() => {
 			this.state.set('isSelectingShipping', false);
-		}, Timeouts.SHIPPING_SELECT_DEBOUNCE);
+		}, TimeoutConstants.SHIPPING_SELECT_DEBOUNCE);
 
 		this.eventBus.emit('shipping:boxnow-selected');
 		
@@ -95,7 +98,7 @@ export class ShippingService {
 	 * @returns {string|null}
 	 */
 	getUserCountry() {
-		const shipToDifferent = document.getElementById(DOMSelectors.SHIP_TO_DIFFERENT_CHECKBOX);
+		const shipToDifferent = document.getElementById(ElementIDs.SHIP_TO_DIFFERENT_CHECKBOX);
 		
 		// Use shipping country if "ship to different address" is checked
 		if (shipToDifferent && shipToDifferent.checked) {
@@ -131,7 +134,7 @@ export class ShippingService {
 	 * @returns {HTMLElement|null}
 	 */
 	getBoxNowRadio() {
-		return document.querySelector(DOMSelectors.BOXNOW_METHOD_RADIO);
+		return document.querySelector(Selectors.BOXNOW_METHOD_RADIO);
 	}
 
 	/**

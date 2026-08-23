@@ -1,0 +1,72 @@
+/**
+ * Details Renderer Component Styles
+ * Locker selection details display
+ */
+
+// Locker info container
+#boxnow-locker-info {
+	font-family: Verdana, Arial, sans-serif;
+	font-weight: 300;
+	margin-top: -7px;
+}
+
+// Locker title with clear/change button
+.boxnow-locker-title {
+	margin: 1px 0px;
+	color: #61bb46;
+	font-weight: 400;
+	height: auto;
+}
+
+// Clear/Change locker button
+.boxnow-clear-locker {
+	margin-left: 10px;
+	font-size: 12px;
+	padding: 2px 8px;
+	cursor: pointer;
+}
+
+// Individual locker detail lines
+.boxnow-locker-detail {
+	margin: 1px 0px;
+	font-size: 13px;
+	line-height: inherit;
+	height: auto;
+
+	// Note styling
+	&.boxnow-locker-note {
+		font-style: italic;
+		margin-top: 10px;
+	}
+}
+
+// Locker image
+.boxnow-locker-image {
+	max-width: 100%;
+	height: auto;
+	margin-top: 10px;
+	border: 1px solid #ddd;
+}
+
+// Selected locker details box
+#boxnow-selected-locker-details,
+#boxnow-selected-locker-details-blocks {
+	padding: 8px;
+	font-size: 15px;
+	border: 2px solid #6CD04E;
+	border-radius: 6px;
+	margin-top: 13px;
+	width: 83%;
+	background-color: #f0ffeb;
+	overflow: auto;
+	max-height: 370px;
+
+	// Visibility states
+	&.hidden {
+		display: none;
+	}
+
+	&.visible {
+		display: block;
+	}
+}

@@ -21,8 +21,8 @@ export class ApiClient {
 	async post(action, data = {}) {
 		const formData = new FormData();
 		formData.append('action', action);
-		formData.append('security', this.nonce);
-		
+		formData.append('nonce', this.nonce);
+
 		// Append all data fields
 		Object.entries(data).forEach(([key, value]) => {
 			formData.append(key, value);

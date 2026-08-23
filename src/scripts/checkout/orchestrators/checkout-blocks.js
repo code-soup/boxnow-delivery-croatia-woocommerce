@@ -2,9 +2,9 @@
  * WooCommerce Blocks checkout orchestrator.
  * Handles Blocks-specific integration (filters, fetch patching, observer).
  */
-import { LockerState, LockerStorage, ApiClient, EventBus, Events, DOMSelectors, Timeouts, CustomEvents } from './core/index.js';
-import { ShippingService, AddressService, ValidationService, WidgetService } from './services/index.js';
-import { ButtonManager, DetailsRenderer, PopupManager } from './ui/index.js';
+import { LockerState, LockerStorage, ApiClient, EventBus, Events, ElementIDs, Selectors, TimeoutConstants, EventNames } from '../core/index.js';
+import { ShippingService, AddressService, ValidationService, WidgetService } from '../services/index.js';
+import { ButtonManager, DetailsRenderer, PopupManager } from '../ui/index.js';
 
 export class CheckoutBlocks {
 	/**
@@ -27,7 +27,7 @@ export class CheckoutBlocks {
 		
 		// Initialize UI components
 		this.buttonManager = new ButtonManager(config, this.shippingService, this.eventBus);
-		this.detailsRenderer = new DetailsRenderer(config);
+		this.detailsRenderer = new DetailsRenderer(config, this.eventBus);
 		this.popupManager = new PopupManager(this.widgetService, this.shippingService);
 		
 		// Observer flag
@@ -42,7 +42,7 @@ export class CheckoutBlocks {
 		if (window.wc && window.wc.blocksCheckout) {
 			callback();
 		} else {
-			setTimeout(() => this.waitForRegistry(callback), Timeouts.REGISTRY_POLL_INTERVAL);
+			setTimeout(() => this.waitForRegistry(callback), TimeoutConstants.REGISTRY_POLL_INTERVAL);
 		}
 	}
 
@@ -79,17 +79,17 @@ export class CheckoutBlocks {
 		window.fetch = async (input, init) => {
 			try {
 				const url = (typeof input === 'string') ? input : (input?.url || '');
-				
+
 				// Only patch checkout endpoint
 				if (!url || !url.includes('/store/v1/checkout')) {
-					return originalFetch.apply(window, arguments);
+					return originalFetch.call(window, input, init);
 				}
 
 				let opts = (typeof input === 'string') ? (init || {}) : { ...input };
-				
+
 				if ((opts.method || 'POST').toUpperCase() === 'POST' && opts.body && opts.headers) {
 					const contentType = opts.headers['Content-Type'] || opts.headers['content-type'] || '';
-					
+
 					if (typeof opts.body === 'string' && contentType.includes('application/json')) {
 						try {
 							const bodyObj = JSON.parse(opts.body);
@@ -105,9 +105,9 @@ export class CheckoutBlocks {
 								bodyObj.extensions['box-now-delivery'] = bodyObj.extensions['box-now-delivery'] || {};
 								bodyObj.extensions['box-now-delivery']['_boxnow_locker_id'] = lockerId;
 							}
-							
+
 							opts.body = JSON.stringify(bodyObj);
-							
+
 							if (typeof input !== 'string') {
 								input = new Request(url, opts);
 							} else {
@@ -122,7 +122,7 @@ export class CheckoutBlocks {
 				return originalFetch.call(window, input, init);
 			} catch (error) {
 				console.error('Error in fetch patch:', error);
-				return originalFetch.apply(window, arguments);
+				return originalFetch.call(window, input, init);
 			}
 		};
 	}
@@ -172,13 +172,24 @@ export class CheckoutBlocks {
 	setupEventListeners() {
 		// Widget open request
 		this.eventBus.on('widget:open-requested', () => {
+			console.log('[BOXNOW DEBUG] widget:open-requested event received in blocks orchestrator');
+			console.log('[BOXNOW DEBUG] popupManager:', this.popupManager);
+			console.log('[BOXNOW DEBUG] Calling popupManager.open()');
 			this.popupManager.open();
+			console.log('[BOXNOW DEBUG] popupManager.open() called');
+		});
+
+		// Clear locker request
+		this.eventBus.on('locker:clear-requested', () => {
+			this.storage.clearAndSync();
+			this.state.clearLocker();
+			this.detailsRenderer.clear();
 		});
 
 		// Widget messages
 		window.addEventListener('message', (event) => {
 			const result = this.widgetService.handleMessage(event);
-			
+
 			if (result && result.type === 'close') {
 				this.popupManager.close();
 			} else if (result && result.type === 'locker-data') {
@@ -188,14 +199,14 @@ export class CheckoutBlocks {
 
 		// Shipping method change
 		document.body.addEventListener('change', (event) => {
-			if (event.target.matches(DOMSelectors.BLOCKS_SHIPPING_RADIO)) {
+			if (event.target.matches(Selectors.BLOCKS_SHIPPING_RADIO)) {
 				this.showSelectedLockerFromStorage();
 			}
 		});
 
 		// Country change
 		document.body.addEventListener('change', (event) => {
-			if (event.target.id === DOMSelectors.BLOCKS_SHIPPING_COUNTRY || event.target.id === DOMSelectors.SHIPPING_COUNTRY) {
+			if (event.target.id === ElementIDs.BLOCKS_SHIPPING_COUNTRY || event.target.id === ElementIDs.SHIPPING_COUNTRY) {
 				this.storage.clearAndSync();
 				this.detailsRenderer.clear();
 				this.state.clearLocker();
@@ -203,7 +214,7 @@ export class CheckoutBlocks {
 		});
 
 		// Updated checkout
-		document.body.addEventListener(CustomEvents.UPDATED_CHECKOUT, () => {
+		document.body.addEventListener(EventNames.UPDATED_CHECKOUT, () => {
 			this.showSelectedLockerFromStorage();
 		});
 	}

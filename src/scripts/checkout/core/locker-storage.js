@@ -1,16 +1,10 @@
 /**
  * Manages locker data persistence in localStorage and WooCommerce session.
  */
-import { safeJsonParse, isValidLockerData } from './ValidationHelpers.js';
+import { safeJsonParse, isValidLockerData } from '../utils/validation-helpers.js';
+import { StorageKeys, AjaxActions } from './constants.js';
 
 export class LockerStorage {
-	/**
-	 * Storage keys
-	 */
-	static KEYS = {
-		SELECTED_LOCKER: 'box_now_selected_locker',
-		WAREHOUSE: 'boxnow_warehouse',
-	};
 
 	/**
 	 * @param {Object} apiClient - API client for AJAX calls
@@ -30,7 +24,7 @@ export class LockerStorage {
 
 		try {
 			const jsonData = JSON.stringify(data);
-			localStorage.setItem(LockerStorage.KEYS.SELECTED_LOCKER, jsonData);
+			localStorage.setItem(StorageKeys.SELECTED_LOCKER, jsonData);
 		} catch (error) {
 			console.error('Failed to save locker data to localStorage:', error);
 		}
@@ -42,7 +36,7 @@ export class LockerStorage {
 	 */
 	load() {
 		try {
-			const jsonData = localStorage.getItem(LockerStorage.KEYS.SELECTED_LOCKER);
+			const jsonData = localStorage.getItem(StorageKeys.SELECTED_LOCKER);
 			const data = safeJsonParse(jsonData, null);
 
 			// Validate schema before returning
@@ -64,7 +58,7 @@ export class LockerStorage {
 	 */
 	clear() {
 		try {
-			localStorage.removeItem(LockerStorage.KEYS.SELECTED_LOCKER);
+			localStorage.removeItem(StorageKeys.SELECTED_LOCKER);
 		} catch (error) {
 			console.error('Failed to clear locker data from localStorage:', error);
 		}
@@ -82,7 +76,7 @@ export class LockerStorage {
 		}
 
 		try {
-			const response = await this.apiClient.post('box_now_save_locker_data', {
+			const response = await this.apiClient.post(AjaxActions.SAVE_LOCKER, {
 				locker_data: JSON.stringify(data),
 			});
 			return response;
@@ -102,8 +96,11 @@ export class LockerStorage {
 			return { success: false };
 		}
 
+		console.log('[BOXNOW DEBUG] clearSession() - calling AJAX action:', AjaxActions.REMOVE_LOCKER);
+
 		try {
-			const response = await this.apiClient.post('box_now_remove_locker_data', {});
+			const response = await this.apiClient.post(AjaxActions.REMOVE_LOCKER, {});
+			console.log('[BOXNOW DEBUG] clearSession() - AJAX response:', response);
 			return response;
 		} catch (error) {
 			console.error('Failed to clear locker data from session:', error);
@@ -129,11 +126,17 @@ export class LockerStorage {
 	 * @returns {Promise<Object>} Session clear response
 	 */
 	async clearAndSync() {
+		console.log('[BOXNOW DEBUG] clearAndSync() called');
+
 		// Clear localStorage first (synchronous)
 		this.clear();
-		
+		console.log('[BOXNOW DEBUG] localStorage cleared');
+
 		// Then clear session (asynchronous)
-		return await this.clearSession();
+		const result = await this.clearSession();
+		console.log('[BOXNOW DEBUG] Session clear result:', result);
+
+		return result;
 	}
 
 	/**
@@ -141,7 +144,7 @@ export class LockerStorage {
 	 * @returns {boolean}
 	 */
 	hasData() {
-		return localStorage.getItem(LockerStorage.KEYS.SELECTED_LOCKER) !== null;
+		return localStorage.getItem(StorageKeys.SELECTED_LOCKER) !== null;
 	}
 
 	/**
@@ -149,7 +152,7 @@ export class LockerStorage {
 	 * @returns {string|null}
 	 */
 	getWarehouse() {
-		return localStorage.getItem(LockerStorage.KEYS.WAREHOUSE);
+		return localStorage.getItem(StorageKeys.WAREHOUSE);
 	}
 
 	/**
@@ -158,7 +161,7 @@ export class LockerStorage {
 	 */
 	saveWarehouse(warehouse) {
 		if (warehouse) {
-			localStorage.setItem(LockerStorage.KEYS.WAREHOUSE, warehouse);
+			localStorage.setItem(StorageKeys.WAREHOUSE, warehouse);
 		}
 	}
 
@@ -166,6 +169,6 @@ export class LockerStorage {
 	 * Clear warehouse data from localStorage
 	 */
 	clearWarehouse() {
-		localStorage.removeItem(LockerStorage.KEYS.WAREHOUSE);
+		localStorage.removeItem(StorageKeys.WAREHOUSE);
 	}
 }

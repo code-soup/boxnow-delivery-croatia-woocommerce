@@ -1,7 +1,7 @@
 /**
  * UI module exports
  */
-export { ButtonManager } from './ButtonManager.js';
-export { DetailsRenderer } from './DetailsRenderer.js';
-export { PopupManager } from './PopupManager.js';
-export { EmbeddedManager } from './EmbeddedManager.js';
+export { ButtonManager } from './button-manager.js';
+export { DetailsRenderer } from './details-renderer.js';
+export { PopupManager } from './popup-manager.js';
+export { EmbeddedManager } from './embedded-manager.js';

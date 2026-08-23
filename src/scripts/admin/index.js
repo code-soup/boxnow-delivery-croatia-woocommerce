@@ -2,8 +2,8 @@
  * Admin order page entry point.
  * Uses OOP architecture - no jQuery.
  */
-import { ApiClient } from '../checkout/core/ApiClient.js';
-import { VoucherManager } from './VoucherManager.js';
+import { ApiClient } from '../checkout/core/api-client.js';
+import { VoucherManager } from './managers/voucher-manager.js';
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {

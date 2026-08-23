@@ -30,11 +30,44 @@ export class ValidationService {
 
 		if (!hasLocker) {
 			const message = this.config.lockerNotSelectedMessage || 'Please select a locker first!';
-			alert(message);
+			this.#showError(message);
 			return false;
 		}
 
 		return true;
+	}
+
+	/**
+	 * Show error message to user
+	 * @private
+	 * @param {string} message - Error message
+	 */
+	#showError(message) {
+		// Try WooCommerce notice system first
+		if (typeof jQuery !== 'undefined' && jQuery('.woocommerce-notices-wrapper').length) {
+			const noticeHtml = `<div class="woocommerce-error" role="alert">${this.#escapeHtml(message)}</div>`;
+			jQuery('.woocommerce-notices-wrapper').first().html(noticeHtml);
+
+			// Scroll to notice
+			jQuery('html, body').animate({
+				scrollTop: jQuery('.woocommerce-notices-wrapper').first().offset().top - 100
+			}, 500);
+		} else {
+			// Fallback to alert if WooCommerce notices not available
+			alert(message);
+		}
+	}
+
+	/**
+	 * Escape HTML to prevent XSS
+	 * @private
+	 * @param {string} str - String to escape
+	 * @returns {string} Escaped string
+	 */
+	#escapeHtml(str) {
+		const div = document.createElement('div');
+		div.textContent = str;
+		return div.innerHTML;
 	}
 
 	/**
@@ -70,11 +103,10 @@ export class ValidationService {
 		const lockerId = lockerData ? lockerData.locker_id : null;
 
 		if (!lockerId) {
-			throw {
-				code: 'box-now-delivery-locker-not-selected',
-				message: this.config.lockerNotSelectedMessage || 'Please select a locker first!',
-				messageContext: 'wc/checkout'
-			};
+			const error = new Error(this.config.lockerNotSelectedMessage || 'Please select a locker first!');
+			error.code = 'box-now-delivery-locker-not-selected';
+			error.messageContext = 'wc/checkout';
+			throw error;
 		}
 
 		return checkoutResponse;

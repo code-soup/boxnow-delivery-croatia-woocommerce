@@ -1,0 +1,46 @@
+/**
+ * Embedded Manager Component Styles
+ * BoxNow widget embedded mode styling
+ */
+
+// Embedded widget container
+.boxnow-embedded-container {
+	margin-top: 10px;
+	width: 100%;
+	height: 80vh;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+
+	&.hidden {
+		display: none;
+	}
+
+	&.visible {
+		display: block;
+	}
+}
+
+// Embedded widget details container
+.boxnow-embedded-details {
+	margin-top: 10px;
+
+	&.hidden {
+		display: none;
+	}
+
+	&.visible {
+		display: block;
+	}
+}
+
+// Auto-open map container
+.boxnow-auto-map {
+	&.hidden {
+		display: none;
+	}
+
+	&.visible {
+		display: block;
+	}
+}

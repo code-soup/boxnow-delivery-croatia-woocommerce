@@ -2,35 +2,22 @@
  * Classic WooCommerce checkout orchestrator.
  * Coordinates all services and UI components.
  */
-import { LockerState, LockerStorage, ApiClient, EventBus, Events, DOMSelectors, Timeouts, CustomEvents } from './core/index.js';
-import { ShippingService, AddressService, ValidationService, WidgetService } from './services/index.js';
-import { ButtonManager, DetailsRenderer, PopupManager, EmbeddedManager } from './ui/index.js';
+import { Events, ElementIDs, Selectors, TimeoutConstants, EventNames, ShippingMethods } from '../core/index.js';
+import { EmbeddedManager } from '../ui/index.js';
+import { BaseCheckout } from './base-checkout.js';
+import { logger } from '../utils/logger.js';
 
-export class CheckoutClassic {
+export class CheckoutClassic extends BaseCheckout {
 	/**
 	 * @param {Object} config - Global settings (boxNowDeliverySettings)
 	 */
 	constructor(config) {
-		this.config = config;
-		
-		// Initialize core
-		this.state = new LockerState();
-		this.eventBus = new EventBus();
-		this.apiClient = new ApiClient(config.ajaxUrl, config.nonce);
-		this.storage = new LockerStorage(this.apiClient);
-		
-		// Initialize services
-		this.shippingService = new ShippingService(this.state, this.eventBus);
-		this.addressService = new AddressService(this.state, this.eventBus);
-		this.validationService = new ValidationService(this.state, this.shippingService, this.storage, config);
-		this.widgetService = new WidgetService(config, this.state, this.eventBus);
-		
-		// Initialize UI components
-		this.buttonManager = new ButtonManager(config, this.shippingService, this.eventBus);
-		this.detailsRenderer = new DetailsRenderer(config);
-		this.popupManager = new PopupManager(this.widgetService, this.shippingService);
+		// Call parent constructor to initialize core, services, and UI
+		super(config);
+
+		// Initialize Classic-specific UI components
 		this.embeddedManager = new EmbeddedManager(this.widgetService, this.shippingService);
-		
+
 		// Debounce timeout for checkout updates
 		this.initTimeout = null;
 	}
@@ -39,21 +26,29 @@ export class CheckoutClassic {
 	 * Initialize checkout
 	 */
 	init() {
+		console.log('[BOXNOW DEBUG] init() called, displayMode:', this.config.displayMode);
+
 		// Skip init if currently populating address
 		if (this.state.get('isPopulatingAddress')) {
+			console.log('[BOXNOW DEBUG] Skipping init - currently populating address');
 			return;
 		}
 
 		// Render UI based on display mode
 		if (this.config.displayMode === 'popup') {
+			console.log('[BOXNOW DEBUG] Display mode is popup, calling buttonManager.render() and updateVisibility()');
 			this.buttonManager.render();
+			console.log('[BOXNOW DEBUG] About to call updateVisibility()');
 			this.buttonManager.updateVisibility();
+			console.log('[BOXNOW DEBUG] updateVisibility() completed');
 		} else if (this.config.displayMode === 'embedded') {
+			console.log('[BOXNOW DEBUG] Display mode is embedded, calling embeddedManager.init()');
 			this.embeddedManager.init();
 		}
 
 		// Restore locker details if BoxNow is selected
 		if (this.shippingService.isBoxNowSelected()) {
+			console.log('[BOXNOW DEBUG] BoxNow is selected, restoring locker from storage');
 			this.showSelectedLockerFromStorage();
 		}
 	}
@@ -69,9 +64,14 @@ export class CheckoutClassic {
 
 		const lockerData = this.storage.load();
 		if (lockerData) {
-			// Restore UI only (don't send to server)
+			// Restore UI
 			this.detailsRenderer.render(lockerData);
+
+			// Update state
 			this.state.setLocker(lockerData);
+
+			// Populate address fields and check "ship to different address" checkbox
+			this.addressService.populate(lockerData);
 		}
 	}
 
@@ -141,9 +141,25 @@ export class CheckoutClassic {
 	setupEventListeners() {
 		// Widget open request (from button clicks)
 		this.eventBus.on('widget:open-requested', () => {
+			console.log('[BOXNOW DEBUG] widget:open-requested event received in orchestrator');
+			console.log('[BOXNOW DEBUG] displayMode:', this.config.displayMode);
+			console.log('[BOXNOW DEBUG] popupManager:', this.popupManager);
+
+			logger.log('widget:open-requested event received, displayMode:', this.config.displayMode);
 			if (this.config.displayMode === 'popup') {
+				console.log('[BOXNOW DEBUG] Calling popupManager.open()');
+				logger.log('Opening popup...');
 				this.popupManager.open();
+				console.log('[BOXNOW DEBUG] popupManager.open() called');
+			} else {
+				console.log('[BOXNOW DEBUG] Display mode is not popup, popup not opened');
 			}
+		});
+
+		// Clear locker request (from "Change" button)
+		this.eventBus.on('locker:clear-requested', () => {
+			logger.log('Clear locker requested');
+			this.clearLocker();
 		});
 
 		// Widget message handler
@@ -159,11 +175,11 @@ export class CheckoutClassic {
 
 		// Shipping method change
 		document.body.addEventListener('change', (event) => {
-			if (event.target.matches(DOMSelectors.SHIPPING_METHOD_RADIO)) {
+			if (event.target.matches(Selectors.SHIPPING_METHOD_RADIO)) {
 				const selectedMethod = event.target.value;
 
 				// If switching away from BoxNow, clear locker
-				if (selectedMethod && !selectedMethod.includes('codesoup_box_now_delivery')) {
+				if (selectedMethod && !selectedMethod.includes(ShippingMethods.BOXNOW_ID)) {
 					this.clearLocker();
 				}
 
@@ -178,18 +194,18 @@ export class CheckoutClassic {
 
 		// Country change - clear locker
 		document.body.addEventListener('change', (event) => {
-			if (event.target.id === DOMSelectors.SHIPPING_COUNTRY) {
+			if (event.target.id === ElementIDs.SHIPPING_COUNTRY) {
 				this.clearLocker();
 			}
 
-			if (event.target.id === DOMSelectors.BILLING_COUNTRY) {
-				const shipToDifferent = document.getElementById(DOMSelectors.SHIP_TO_DIFFERENT_CHECKBOX);
+			if (event.target.id === ElementIDs.BILLING_COUNTRY) {
+				const shipToDifferent = document.getElementById(ElementIDs.SHIP_TO_DIFFERENT_CHECKBOX);
 				if (!shipToDifferent || !shipToDifferent.checked) {
 					this.clearLocker();
 				}
 			}
 
-			if (event.target.id === DOMSelectors.SHIP_TO_DIFFERENT_CHECKBOX) {
+			if (event.target.id === ElementIDs.SHIP_TO_DIFFERENT_CHECKBOX) {
 				// Skip if populating address
 				if (!this.state.get('isPopulatingAddress')) {
 					this.clearLocker();
@@ -198,7 +214,7 @@ export class CheckoutClassic {
 		});
 
 		// Checkout updated (WooCommerce event)
-		document.body.addEventListener(CustomEvents.UPDATED_CHECKOUT, () => {
+		document.body.addEventListener(EventNames.UPDATED_CHECKOUT, () => {
 			// Debounce init calls
 			if (this.initTimeout) {
 				clearTimeout(this.initTimeout);
@@ -206,7 +222,7 @@ export class CheckoutClassic {
 			this.initTimeout = setTimeout(() => {
 				this.init();
 				this.initTimeout = null;
-			}, Timeouts.CHECKOUT_UPDATE_DEBOUNCE);
+			}, TimeoutConstants.CHECKOUT_UPDATE_DEBOUNCE);
 		});
 
 		// Place order validation
