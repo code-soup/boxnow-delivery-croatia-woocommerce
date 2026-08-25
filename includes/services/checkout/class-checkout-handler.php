@@ -132,6 +132,7 @@ class Checkout_Handler {
 		}
 
 		$button_text          = get_option( 'boxnow_button_text', __( 'Pick a Locker', 'codesoup-woo-boxnow' ) );
+		$button_description   = get_option( 'boxnow_button_description', '' );
 		$shipping_method_name = __( 'BoxNow Delivery by CodeSoup', 'codesoup-woo-boxnow' );
 		$button_color         = get_option( 'boxnow_button_color', '#6CD04E' );
 
@@ -148,6 +149,11 @@ class Checkout_Handler {
 			>
 				<?php echo esc_html( $button_text . ' - ' . $shipping_method_name ); ?>
 			</button>
+			<?php if ( ! empty( $button_description ) ) : ?>
+				<div class="boxnow-button-description" style="margin-top: 8px; font-size: 0.9em; color: #666;">
+					<?php echo wp_kses_post( $button_description ); ?>
+				</div>
+			<?php endif; ?>
 		</span>
 		<?php
 	}

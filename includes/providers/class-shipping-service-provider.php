@@ -9,7 +9,7 @@ namespace CodeSoup\BoxNow\Providers;
 
 use CodeSoup\BoxNow\Abstracts\AbstractServiceProvider;
 use CodeSoup\BoxNow\Services\Shipping\Shipping_Method;
-use CodeSoup\BoxNow\Services\Shipping\COD_Handler;
+use CodeSoup\BoxNow\Services\Shipping\Payment_Gateway_Handler;
 
 /**
  * The shipping service provider.
@@ -21,7 +21,7 @@ class ShippingServiceProvider extends AbstractServiceProvider {
 	 */
 	public function register(): void {
 		$this->singleton( 'shipping_method', Shipping_Method::class );
-		$this->singleton( 'cod_handler', COD_Handler::class );
+		$this->singleton( 'payment_gateway_handler', Payment_Gateway_Handler::class );
 	}
 
 	/**
@@ -37,8 +37,8 @@ class ShippingServiceProvider extends AbstractServiceProvider {
 			'register_shipping_method'
 		);
 
-		// Initialize COD handler
-		$this->container->get( 'cod_handler' )->init();
+		// Initialize payment gateway handler
+		$this->container->get( 'payment_gateway_handler' )->init();
 	}
 
 	/**

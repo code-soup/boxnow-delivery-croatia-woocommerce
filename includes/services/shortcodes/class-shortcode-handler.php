@@ -58,6 +58,7 @@ class Shortcode_Handler {
 		);
 
 		$button_text          = esc_html( $atts['text'] );
+		$button_description   = get_option( 'boxnow_button_description', '' );
 		$show_method_name     = 'yes' === $atts['show_method_name'];
 		$auto_select          = 'yes' === $atts['auto_select'];
 		$shipping_method_name = __( 'BoxNow Delivery by CodeSoup', 'codesoup-woo-boxnow' );
@@ -85,6 +86,11 @@ class Shortcode_Handler {
 			>
 				<?php echo esc_html( $button_text ); ?>
 			</button>
+			<?php if ( ! empty( $button_description ) ) : ?>
+				<div class="boxnow-button-description" style="margin-top: 8px; font-size: 0.9em; color: #666;">
+					<?php echo wp_kses_post( $button_description ); ?>
+				</div>
+			<?php endif; ?>
 		</span>
 		<?php
 		return ob_get_clean();
