@@ -169,9 +169,11 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 	 * Save checkbox group fields.
 	 */
 	public function save_checkbox_group_fields() {
+		$current_section = isset( $_GET['section'] ) ? sanitize_text_field( wp_unslash( $_GET['section'] ) ) : '';
+
 		$settings = $this->get_settings_for_default_section();
 
-		if ( 'widget' === $this->get_current_section() ) {
+		if ( 'widget' === $current_section ) {
 			$settings = $this->get_settings_for_widget_section();
 		}
 
