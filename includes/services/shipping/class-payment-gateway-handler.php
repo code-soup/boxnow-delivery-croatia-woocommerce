@@ -41,7 +41,6 @@ class Payment_Gateway_Handler {
 	 */
 	public function init(): void {
 		$this->hooker->add_filter( 'woocommerce_available_payment_gateways', $this, 'filter_payment_gateways', 10, 1 );
-		$this->hooker->add_filter( 'woocommerce_available_payment_gateways', $this, 'add_pay_at_locker_gateway', 20, 1 );
 		$this->hooker->add_filter( 'woocommerce_gateway_description', $this, 'modify_cod_description', 10, 2 );
 	}
 
@@ -52,25 +51,50 @@ class Payment_Gateway_Handler {
 	 * @return array
 	 */
 	public function filter_payment_gateways( $available_gateways ) {
-		if ( is_admin() || ! $this->is_box_now_selected() ) {
+		if ( is_admin() ) {
 			return $available_gateways;
 		}
 
-		$allowed_methods = get_option( Option_Keys::ALLOWED_PAYMENT_METHODS, array() );
+		$is_boxnow_selected = $this->is_box_now_selected();
 
-		if ( ! is_array( $allowed_methods ) || empty( $allowed_methods ) ) {
-			return $available_gateways;
-		}
+		// Add pay-at-locker gateway if enabled and BoxNow is selected
+		if ( $is_boxnow_selected ) {
+			$enable_pay_at_locker = get_option( Option_Keys::ENABLE_PAY_AT_LOCKER, 'no' );
 
-		$filtered_gateways = array();
+			if ( 'yes' === $enable_pay_at_locker ) {
+				$gateway_title = get_option(
+					Option_Keys::PAY_AT_LOCKER_TITLE,
+					__( 'Pay with Card at BoxNow', 'codesoup-woo-boxnow' )
+				);
 
-		foreach ( $available_gateways as $gateway_id => $gateway ) {
-			if ( in_array( $gateway_id, $allowed_methods, true ) ) {
-				$filtered_gateways[ $gateway_id ] = $gateway;
+				$available_gateways['boxnow_pay_at_locker'] = new Pay_At_Locker_Gateway( $gateway_title );
 			}
 		}
 
-		return $filtered_gateways;
+		// Filter to allowed payment methods if BoxNow is selected
+		if ( $is_boxnow_selected ) {
+			$allowed_methods = get_option( Option_Keys::ALLOWED_PAYMENT_METHODS, array() );
+
+			if ( is_array( $allowed_methods ) && ! empty( $allowed_methods ) ) {
+				$filtered_gateways = array();
+
+				foreach ( $available_gateways as $gateway_id => $gateway ) {
+					// Always allow boxnow_pay_at_locker if it exists
+					if ( 'boxnow_pay_at_locker' === $gateway_id ) {
+						$filtered_gateways[ $gateway_id ] = $gateway;
+					} elseif ( in_array( $gateway_id, $allowed_methods, true ) ) {
+						$filtered_gateways[ $gateway_id ] = $gateway;
+					}
+				}
+
+				return $filtered_gateways;
+			}
+		} else {
+			// Remove pay-at-locker gateway if BoxNow is NOT selected
+			unset( $available_gateways['boxnow_pay_at_locker'] );
+		}
+
+		return $available_gateways;
 	}
 
 	/**
@@ -104,33 +128,6 @@ class Payment_Gateway_Handler {
 		}
 
 		return $description;
-	}
-
-	/**
-	 * Add pay-at-locker gateway when BoxNow shipping is selected.
-	 *
-	 * @param array $available_gateways Available payment gateways.
-	 * @return array
-	 */
-	public function add_pay_at_locker_gateway( $available_gateways ) {
-		if ( is_admin() || ! $this->is_box_now_selected() ) {
-			return $available_gateways;
-		}
-
-		$enable_pay_at_locker = get_option( Option_Keys::ENABLE_PAY_AT_LOCKER, 'no' );
-
-		if ( 'yes' !== $enable_pay_at_locker ) {
-			return $available_gateways;
-		}
-
-		$gateway_title = get_option(
-			Option_Keys::PAY_AT_LOCKER_TITLE,
-			__( 'Pay with Card at BoxNow', 'codesoup-woo-boxnow' )
-		);
-
-		$available_gateways['boxnow_pay_at_locker'] = new Pay_At_Locker_Gateway( $gateway_title );
-
-		return $available_gateways;
 	}
 
 	/**

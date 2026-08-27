@@ -37,7 +37,9 @@ class Email_Handler {
 	 * Initialize hooks.
 	 */
 	public function init(): void {
-		$this->hooker->add_action( 'woocommerce_email_after_order_table', $this, 'add_locker_details_to_email', 10, 4 );
+		$this->hooker->add_action( 'woocommerce_email_customer_details', $this, 'add_locker_details_to_email', 30, 4 );
+		$this->hooker->add_action( 'woocommerce_email_order_details', $this, 'add_locker_details_to_admin_email', 30, 4 );
+		$this->hooker->add_action( 'woocommerce_order_details_after_customer_details', $this, 'add_locker_details_to_thank_you_page', 10, 1 );
 	}
 
 	/**
@@ -167,5 +169,82 @@ class Email_Handler {
 		}
 		
 		echo "\n";
+	}
+
+	/**
+	 * Add locker details to admin emails.
+	 *
+	 * @param \WC_Order $order Order object.
+	 * @param bool      $sent_to_admin Sent to admin.
+	 * @param bool      $plain_text Plain text email.
+	 * @param \WC_Email $email Email object.
+	 */
+	public function add_locker_details_to_admin_email( $order, $sent_to_admin, $plain_text, $email ) {
+		// Only show in admin emails
+		if ( ! $sent_to_admin ) {
+			return;
+		}
+
+		if ( ! Order_Helper::is_box_now_order( $order ) ) {
+			return;
+		}
+
+		$locker_id = $order->get_meta( '_boxnow_locker_id' );
+		$locker_name = $order->get_meta( '_boxnow_locker_name' );
+		$locker_address = $order->get_meta( '_boxnow_locker_address' );
+		$locker_city = $order->get_meta( '_boxnow_locker_city' );
+		$locker_postcode = $order->get_meta( '_boxnow_locker_postcode' );
+		$locker_note = $order->get_meta( '_boxnow_locker_note' );
+		$locker_image = $order->get_meta( '_boxnow_locker_image' );
+
+		if ( ! $locker_id ) {
+			return;
+		}
+
+		if ( $plain_text ) {
+			$this->render_plain_text_locker_details( $locker_id, $locker_name, $locker_address, $locker_city, $locker_postcode, $locker_note, $locker_image );
+		} else {
+			$this->render_html_locker_details( $locker_id, $locker_name, $locker_address, $locker_city, $locker_postcode, $locker_note, $locker_image );
+		}
+	}
+
+	/**
+	 * Add locker details to order-received (thank you) page.
+	 *
+	 * @param \WC_Order $order Order object.
+	 */
+	public function add_locker_details_to_thank_you_page( $order ) {
+		if ( ! Order_Helper::is_box_now_order( $order ) ) {
+			return;
+		}
+
+		$locker_id = $order->get_meta( '_boxnow_locker_id' );
+		if ( ! $locker_id ) {
+			return;
+		}
+
+		$locker_name = $order->get_meta( '_boxnow_locker_name' );
+		$locker_address = $order->get_meta( '_boxnow_locker_address' );
+		$locker_city = $order->get_meta( '_boxnow_locker_city' );
+		$locker_postcode = $order->get_meta( '_boxnow_locker_postcode' );
+		$locker_country = $order->get_meta( '_boxnow_locker_country' );
+
+		?>
+		<section class="woocommerce-columns woocommerce-columns--2 woocommerce-columns--addresses col2-set addresses" style="margin-top: 20px;">
+			<div class="woocommerce-column woocommerce-column--1 woocommerce-column--locker-address col-1">
+				<h2 class="woocommerce-column__title"><?php esc_html_e( 'BoxNow Locker', 'codesoup-woo-boxnow' ); ?></h2>
+				<address>
+					<strong><?php echo esc_html( $locker_name ); ?></strong><br>
+					<?php echo esc_html( $locker_address ); ?><br>
+					<?php echo esc_html( trim( sprintf( '%s %s', $locker_postcode, $locker_city ) ) ); ?><br>
+					<?php if ( $locker_country ) : ?>
+						<?php echo esc_html( WC()->countries->countries[ $locker_country ] ?? $locker_country ); ?>
+					<?php endif; ?>
+					<br><br>
+					<strong><?php esc_html_e( 'Locker ID:', 'codesoup-woo-boxnow' ); ?></strong> <?php echo esc_html( $locker_id ); ?>
+				</address>
+			</div>
+		</section>
+		<?php
 	}
 }

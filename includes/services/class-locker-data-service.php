@@ -69,15 +69,31 @@ class Locker_Data_Service {
 	 * @param array $data Locker data.
 	 */
 	public function save_to_session( array $data ): void {
+
 		if ( ! $this->is_wc_session_available() ) {
 			return;
 		}
 
+		// Save all data as a single serialized array for better persistence
+		$session_data = array();
+		foreach ( self::FIELDS as $field_key => $config ) {
+			if ( isset( $data[ $field_key ] ) && ! empty( $data[ $field_key ] ) ) {
+				$session_data[ $field_key ] = $data[ $field_key ];
+			}
+		}
+
+		// Store as a single session variable
+		WC()->session->set( 'boxnow_locker_data', $session_data );
+
+		// Also set individual fields for backward compatibility
+		$saved_count = 0;
 		foreach ( self::FIELDS as $field_key => $config ) {
 			if ( isset( $data[ $field_key ] ) && ! empty( $data[ $field_key ] ) ) {
 				WC()->session->set( $config['session_key'], $data[ $field_key ] );
+				$saved_count++;
 			}
 		}
+
 	}
 
 	/**
@@ -86,10 +102,19 @@ class Locker_Data_Service {
 	 * @return array
 	 */
 	public function get_from_session(): array {
+
 		if ( ! $this->is_wc_session_available() ) {
 			return array();
 		}
 
+		// First try to get the consolidated data
+		$consolidated_data = WC()->session->get( 'boxnow_locker_data' );
+		if ( ! empty( $consolidated_data ) && is_array( $consolidated_data ) ) {
+			return $consolidated_data;
+		}
+
+
+		// Fallback to individual fields
 		$data = array();
 		foreach ( self::FIELDS as $field_key => $config ) {
 			$value = WC()->session->get( $config['session_key'] );
@@ -121,13 +146,21 @@ class Locker_Data_Service {
 	 * @param array     $data  Locker data (optional, fetches from session if null).
 	 */
 	public function save_to_order( \WC_Order $order, ?array $data = null ): void {
+
 		if ( null === $data ) {
 			$data = $this->get_from_session();
 		}
 
+		if ( empty( $data ) ) {
+			return;
+		}
+
+		$saved_count = 0;
 		foreach ( self::FIELDS as $field_key => $config ) {
 			if ( isset( $data[ $field_key ] ) && ! empty( $data[ $field_key ] ) ) {
-				$order->update_meta_data( $config['meta_key'], sanitize_text_field( $data[ $field_key ] ) );
+				$meta_value = sanitize_text_field( $data[ $field_key ] );
+				$order->update_meta_data( $config['meta_key'], $meta_value );
+				$saved_count++;
 			}
 		}
 
@@ -143,10 +176,29 @@ class Locker_Data_Service {
 	public function sanitize_post_data( array $post_data ): array {
 		$data = array();
 
-		foreach ( self::FIELDS as $field_key => $config ) {
-			$data[ $field_key ] = isset( $post_data[ $field_key ] )
-				? sanitize_text_field( wp_unslash( $post_data[ $field_key ] ) )
-				: '';
+		// Map JavaScript field names to PHP field names
+		$field_mapping = array(
+			'locker_id'       => array( 'locker_id' ),
+			'locker_name'     => array( 'locker_name', 'name' ),
+			'locker_address'  => array( 'locker_address', 'addressLine1', 'address' ),
+			'locker_city'     => array( 'locker_city', 'city' ),
+			'locker_postcode' => array( 'locker_postcode', 'postalCode', 'postal_code', 'zip' ),
+			'locker_country'  => array( 'locker_country', 'country' ),
+			'locker_note'     => array( 'locker_note', 'note' ),
+			'locker_image'    => array( 'locker_image', 'image' ),
+			'warehouse'       => array( 'warehouse', 'warehouseId', 'warehouse_id' ),
+		);
+
+		foreach ( $field_mapping as $field_key => $possible_keys ) {
+			$data[ $field_key ] = '';
+
+			// Try each possible key
+			foreach ( $possible_keys as $key ) {
+				if ( isset( $post_data[ $key ] ) && ! empty( $post_data[ $key ] ) ) {
+					$data[ $field_key ] = sanitize_text_field( wp_unslash( $post_data[ $key ] ) );
+					break;
+				}
+			}
 		}
 
 		return $data;

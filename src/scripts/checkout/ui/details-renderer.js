@@ -115,6 +115,9 @@ export class DetailsRenderer {
 
 		// Create/update hidden input for full locker data
 		this.#createHiddenInput(ElementIDs.LOCKER_DATA_INPUT, JSON.stringify(lockerData));
+
+		// Populate checkout form hidden fields (for POST submission)
+		this.#populateCheckoutHiddenFields(lockerData);
 	}
 
 	/**
@@ -210,5 +213,30 @@ export class DetailsRenderer {
 		const div = document.createElement('div');
 		div.textContent = text;
 		return div.innerHTML;
+	}
+
+	/**
+	 * Populate checkout form hidden fields
+	 * @private
+	 * @param {Object} lockerData - Locker data object
+	 */
+	#populateCheckoutHiddenFields(lockerData) {
+		// Populate boxnow_locker_id
+		const lockerIdField = document.querySelector('input[name="boxnow_locker_id"]');
+		if (lockerIdField) {
+			lockerIdField.value = lockerData.locker_id || '';
+		}
+
+		// Populate boxnow_locker_name
+		const lockerNameField = document.querySelector('input[name="boxnow_locker_name"]');
+		if (lockerNameField) {
+			lockerNameField.value = lockerData.name || '';
+		}
+
+		// Populate boxnow_warehouse
+		const warehouseField = document.querySelector('input[name="boxnow_warehouse"]');
+		if (warehouseField && lockerData.warehouseId) {
+			warehouseField.value = lockerData.warehouseId;
+		}
 	}
 }

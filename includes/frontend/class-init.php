@@ -38,12 +38,10 @@ class Init {
 	 * Initialize and register hooks.
 	 */
 	public function init(): void {
-		error_log( '[BoxNow] Frontend Init::init() called' );
 
 		// Use add_action directly since hooker->run() has already been called
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 
-		error_log( '[BoxNow] wp_enqueue_scripts hook registered' );
 	}
 
 	/**
@@ -51,15 +49,12 @@ class Init {
 	 */
 	public function wp_enqueue_scripts(): void {
 
-		error_log( '[BoxNow] wp_enqueue_scripts() called, is_checkout(): ' . ( is_checkout() ? 'YES' : 'NO' ) );
 
 		// Only enqueue on checkout page.
 		if ( ! is_checkout() ) {
-			error_log( '[BoxNow] Not checkout page, skipping' );
 			return;
 		}
 
-		error_log( '[BoxNow] Enqueueing scripts on checkout page' );
 
 		$assets_handler = plugin()->get( 'assets' );
 		$plugin_version = plugin()->get_config( 'PLUGIN_VERSION' );
@@ -106,11 +101,7 @@ class Init {
 
 		// Classic checkout script.
 		if ( $assets_handler->asset_exists( 'checkout.js' ) ) {
-			error_log( '[BoxNow] Enqueueing checkout.js' );
-			error_log( '[BoxNow] Settings: ' . print_r( $settings, true ) );
-
 			$script_url = $assets_handler->get_asset_url( 'checkout.js' );
-			error_log( '[BoxNow] Script URL: ' . $script_url );
 
 			wp_enqueue_script(
 				'csbxwoo-checkout',
@@ -133,7 +124,6 @@ class Init {
 				'before'
 			);
 		} else {
-			error_log( '[BoxNow] checkout.js NOT found in assets' );
 		}
 
 		// Checkout blocks script.

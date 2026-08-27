@@ -34,6 +34,24 @@ export class CheckoutClassic extends BaseCheckout {
 			return;
 		}
 
+		// Skip init if currently selecting shipping to prevent loops
+		if (this.state.get('isSelectingShipping')) {
+			console.log('[BOXNOW DEBUG] Skipping init - currently selecting shipping');
+			return;
+		}
+
+		// Auto-select BoxNow if locker data exists in localStorage but BoxNow isn't selected
+		const hasLockerData = this.storage.hasData();
+		const isBoxNowSelected = this.shippingService.isBoxNowSelected();
+		const isBoxNowAvailable = this.shippingService.isBoxNowAvailable();
+
+		if (hasLockerData && !isBoxNowSelected && isBoxNowAvailable && !this.state.get('hasAutoSelectedBoxNow')) {
+			console.log('[BOXNOW DEBUG] Locker data exists in storage, auto-selecting BoxNow shipping');
+			this.state.set('hasAutoSelectedBoxNow', true);
+			this.shippingService.selectBoxNow();
+			return; // Exit early, will re-init after shipping selection
+		}
+
 		// Render UI based on display mode
 		if (this.config.displayMode === 'popup') {
 			console.log('[BOXNOW DEBUG] Display mode is popup, calling buttonManager.render() and updateVisibility()');
@@ -133,6 +151,11 @@ export class CheckoutClassic extends BaseCheckout {
 
 		// Emit event
 		this.eventBus.emit(Events.LOCKER_CLEARED);
+
+		// Open widget to select new locker
+		if (this.config.displayMode === 'popup') {
+			this.popupManager.open();
+		}
 	}
 
 	/**
@@ -178,8 +201,15 @@ export class CheckoutClassic extends BaseCheckout {
 			if (event.target.matches(Selectors.SHIPPING_METHOD_RADIO)) {
 				const selectedMethod = event.target.value;
 
+				// If switching TO BoxNow and we have locker data, restore it
+				if (selectedMethod && selectedMethod.includes(ShippingMethods.BOXNOW_ID)) {
+					if (this.storage.hasData()) {
+						console.log('[BOXNOW DEBUG] Switched to BoxNow, restoring locker from storage');
+						this.showSelectedLockerFromStorage();
+					}
+				}
 				// If switching away from BoxNow, clear locker
-				if (selectedMethod && !selectedMethod.includes(ShippingMethods.BOXNOW_ID)) {
+				else if (selectedMethod && !selectedMethod.includes(ShippingMethods.BOXNOW_ID)) {
 					this.clearLocker();
 				}
 

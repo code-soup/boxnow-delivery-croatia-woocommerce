@@ -70,20 +70,10 @@ export class LockerStorage {
 	 * @returns {Promise<Object>} API response
 	 */
 	async saveToSession(data) {
-		if (!this.apiClient) {
-			console.warn('No API client available for session save');
-			return { success: false };
-		}
-
-		try {
-			const response = await this.apiClient.post(AjaxActions.SAVE_LOCKER, {
-				locker_data: JSON.stringify(data),
-			});
-			return response;
-		} catch (error) {
-			console.error('Failed to save locker data to session:', error);
-			return { success: false, error: error.message };
-		}
+		console.log('[BOXNOW DEBUG] saveToSession() - skipping (using POST data now)');
+		// Session saving is no longer needed since we use POST data directly
+		// Hidden form fields are populated by details-renderer.js
+		return { success: true };
 	}
 
 	/**
@@ -91,21 +81,10 @@ export class LockerStorage {
 	 * @returns {Promise<Object>} API response
 	 */
 	async clearSession() {
-		if (!this.apiClient) {
-			console.warn('No API client available for session clear');
-			return { success: false };
-		}
-
-		console.log('[BOXNOW DEBUG] clearSession() - calling AJAX action:', AjaxActions.REMOVE_LOCKER);
-
-		try {
-			const response = await this.apiClient.post(AjaxActions.REMOVE_LOCKER, {});
-			console.log('[BOXNOW DEBUG] clearSession() - AJAX response:', response);
-			return response;
-		} catch (error) {
-			console.error('Failed to clear locker data from session:', error);
-			return { success: false, error: error.message };
-		}
+		// Session clearing is no longer needed since we use POST data directly
+		// Just return success without making AJAX call
+		console.log('[BOXNOW DEBUG] clearSession() - skipping (using POST data now)');
+		return { success: true };
 	}
 
 	/**
@@ -114,11 +93,17 @@ export class LockerStorage {
 	 * @returns {Promise<Object>} Session save response
 	 */
 	async saveAndSync(data) {
+		console.log('[BOXNOW DEBUG] saveAndSync() called with data:', data);
+
 		// Save to localStorage first (synchronous)
 		this.save(data);
-		
+		console.log('[BOXNOW DEBUG] Saved to localStorage');
+
 		// Then sync to session (asynchronous)
-		return await this.saveToSession(data);
+		const result = await this.saveToSession(data);
+		console.log('[BOXNOW DEBUG] saveAndSync() result:', result);
+
+		return result;
 	}
 
 	/**

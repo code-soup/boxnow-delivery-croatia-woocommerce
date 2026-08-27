@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-26
+
+### Added
+- "Pay with Card at Locker" payment gateway
+- Auto-select BoxNow shipping when locker is pre-selected
+- Locker details display on order-received (thank you) page
+- Locker details display in admin order screen (below shipping address)
+- Locker details display in all emails (customer and admin)
+
+### Fixed
+- Locker data persistence using POST instead of unreliable session storage
+- Hidden checkout fields for locker data to ensure database save
+- Infinite loop on "Change" locker button
+- "Change" button now opens widget iframe for new selection
+- Session volatility issues during checkout process
+
 ## [1.0.0] - 2026-07-16
 
 ### Added

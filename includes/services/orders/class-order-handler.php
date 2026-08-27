@@ -62,6 +62,7 @@ class Order_Handler {
 		$this->hooker->add_action( 'init', $this, 'register_custom_order_status' );
 		$this->hooker->add_filter( 'woocommerce_admin_order_actions', $this, 'add_cancel_button', 10, 2 );
 		$this->hooker->add_action( 'admin_enqueue_scripts', $this, 'add_cancel_button_css' );
+		$this->hooker->add_action( 'woocommerce_admin_order_data_after_shipping_address', $this, 'display_locker_details_in_admin', 10, 1 );
 	}
 
 	/**
@@ -167,6 +168,62 @@ class Order_Handler {
 		);
 	}
 
+	/**
+	 * Display locker details in admin order screen.
+	 *
+	 * @param \WC_Order $order Order object.
+	 */
+	public function display_locker_details_in_admin( $order ) {
+		if ( ! Order_Helper::is_box_now_order( $order ) ) {
+			return;
+		}
 
+		$locker_id = $order->get_meta( '_boxnow_locker_id' );
+		if ( ! $locker_id ) {
+			return;
+		}
+
+		$locker_name = $order->get_meta( '_boxnow_locker_name' );
+		$locker_address = $order->get_meta( '_boxnow_locker_address' );
+		$locker_city = $order->get_meta( '_boxnow_locker_city' );
+		$locker_postcode = $order->get_meta( '_boxnow_locker_postcode' );
+		$locker_country = $order->get_meta( '_boxnow_locker_country' );
+
+		?>
+		<div class="boxnow-locker-details" style="margin-top: 20px; padding: 12px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px;">
+			<h4 style="margin-top: 0; margin-bottom: 12px; color: #2c3e50;">
+				<?php esc_html_e( 'BoxNow Locker Details', 'codesoup-woo-boxnow' ); ?>
+			</h4>
+			<p style="margin: 4px 0;">
+				<strong><?php esc_html_e( 'Locker ID:', 'codesoup-woo-boxnow' ); ?></strong>
+				<?php echo esc_html( $locker_id ); ?>
+			</p>
+			<?php if ( $locker_name ) : ?>
+			<p style="margin: 4px 0;">
+				<strong><?php esc_html_e( 'Locker Name:', 'codesoup-woo-boxnow' ); ?></strong>
+				<?php echo esc_html( $locker_name ); ?>
+			</p>
+			<?php endif; ?>
+			<?php if ( $locker_address ) : ?>
+			<p style="margin: 4px 0;">
+				<strong><?php esc_html_e( 'Address:', 'codesoup-woo-boxnow' ); ?></strong>
+				<?php echo esc_html( $locker_address ); ?>
+			</p>
+			<?php endif; ?>
+			<?php if ( $locker_city || $locker_postcode ) : ?>
+			<p style="margin: 4px 0;">
+				<strong><?php esc_html_e( 'City:', 'codesoup-woo-boxnow' ); ?></strong>
+				<?php echo esc_html( trim( sprintf( '%s %s', $locker_postcode, $locker_city ) ) ); ?>
+			</p>
+			<?php endif; ?>
+			<?php if ( $locker_country ) : ?>
+			<p style="margin: 4px 0;">
+				<strong><?php esc_html_e( 'Country:', 'codesoup-woo-boxnow' ); ?></strong>
+				<?php echo esc_html( $locker_country ); ?>
+			</p>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
 
 }

@@ -53,13 +53,59 @@ class Checkout_Handler {
 	 * @param int $order_id Order ID.
 	 */
 	public function save_locker_data( $order_id ) {
+
 		$order = wc_get_order( $order_id );
 
-		if ( ! $order || ! Order_Helper::is_box_now_order( $order ) ) {
+		if ( ! $order ) {
 			return;
 		}
 
-		Locker_Data_Manager::save_to_order( $order );
+		// Log shipping methods
+		$shipping_methods = $order->get_shipping_methods();
+		foreach ( $shipping_methods as $item ) {
+		}
+
+		$is_boxnow = Order_Helper::is_box_now_order( $order );
+
+		if ( ! $is_boxnow ) {
+			return;
+		}
+
+		// Try to get data from $_POST first (submitted with checkout form)
+		$post_locker_id = isset( $_POST['boxnow_locker_id'] ) ? sanitize_text_field( wp_unslash( $_POST['boxnow_locker_id'] ) ) : '';
+
+		if ( ! empty( $post_locker_id ) ) {
+
+			// Build locker data from POST
+			$locker_data = array(
+				'locker_id'      => $post_locker_id,
+				'locker_name'    => isset( $_POST['boxnow_locker_name'] ) ? sanitize_text_field( wp_unslash( $_POST['boxnow_locker_name'] ) ) : '',
+				'warehouse'      => isset( $_POST['boxnow_warehouse'] ) ? sanitize_text_field( wp_unslash( $_POST['boxnow_warehouse'] ) ) : '',
+				'locker_address' => isset( $_POST['shipping_address_1'] ) ? sanitize_text_field( wp_unslash( $_POST['shipping_address_1'] ) ) : '',
+				'locker_city'    => isset( $_POST['shipping_city'] ) ? sanitize_text_field( wp_unslash( $_POST['shipping_city'] ) ) : '',
+				'locker_postcode' => isset( $_POST['shipping_postcode'] ) ? sanitize_text_field( wp_unslash( $_POST['shipping_postcode'] ) ) : '',
+				'locker_country' => isset( $_POST['shipping_country'] ) ? sanitize_text_field( wp_unslash( $_POST['shipping_country'] ) ) : '',
+			);
+
+
+			// Save to order
+			foreach ( $locker_data as $key => $value ) {
+				if ( ! empty( $value ) ) {
+					$order->update_meta_data( '_boxnow_' . $key, $value );
+				}
+			}
+			$order->save();
+		} else {
+
+			// Fallback to session data
+			$session_data = Locker_Data_Manager::get_from_session();
+
+			if ( empty( $session_data ) ) {
+			} else {
+				Locker_Data_Manager::save_to_order( $order );
+			}
+		}
+
 		Locker_Data_Manager::clear_session();
 	}
 
@@ -67,9 +113,23 @@ class Checkout_Handler {
 	 * AJAX handler to save locker selection.
 	 */
 	public function ajax_save_locker() {
+
 		check_ajax_referer( 'codesoup_boxnow_nonce', 'nonce' );
 
-		$data = Locker_Data_Manager::sanitize_post_data( $_POST );
+		// Check if data is sent as JSON string
+		if ( isset( $_POST['locker_data'] ) && is_string( $_POST['locker_data'] ) ) {
+			$locker_data = json_decode( wp_unslash( $_POST['locker_data'] ), true );
+
+			if ( is_array( $locker_data ) ) {
+				$data = Locker_Data_Manager::sanitize_post_data( $locker_data );
+			} else {
+				$data = Locker_Data_Manager::sanitize_post_data( $_POST );
+			}
+		} else {
+			// Fallback: try to get data directly from $_POST
+			$data = Locker_Data_Manager::sanitize_post_data( $_POST );
+		}
+
 
 		// Default warehouse if not provided
 		if ( empty( $data['warehouse'] ) ) {
@@ -78,6 +138,9 @@ class Checkout_Handler {
 		}
 
 		Locker_Data_Manager::save_to_session( $data );
+
+		// Verify it was saved
+		$session_check = Locker_Data_Manager::get_from_session();
 
 		wp_send_json_success( $data );
 	}
