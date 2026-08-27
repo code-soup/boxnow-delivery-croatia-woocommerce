@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || die;
  * Plugin Name:       BoxNow Delivery for WooCommerce by CodeSoup
  * Plugin URI:        https://github.com/code-soup/woo-box-now-delivery-croatia
  * Description:       Enable BoxNow locker delivery service for WooCommerce. Unofficial plugin - not affiliated with BoxNow.
- * Version:           1.0.1
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      8.1
  * Author:            Code Soup
