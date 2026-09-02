@@ -37,8 +37,9 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 	 */
 	protected function get_own_sections() {
 		return array(
-			''       => __( 'API Settings', 'codesoup-woo-boxnow' ),
-			'widget' => __( 'Widget Settings', 'codesoup-woo-boxnow' ),
+			''        => __( 'API Settings', 'codesoup-woo-boxnow' ),
+			'widget'  => __( 'Widget Settings', 'codesoup-woo-boxnow' ),
+			'voucher' => __( 'Voucher Settings', 'codesoup-woo-boxnow' ),
 		);
 	}
 
@@ -61,6 +62,15 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 	 */
 	protected function get_settings_for_widget_section() {
 		return $this->get_widget_settings();
+	}
+
+	/**
+	 * Get settings for the voucher section.
+	 *
+	 * @return array
+	 */
+	protected function get_settings_for_voucher_section() {
+		return $this->get_voucher_settings();
 	}
 
 
@@ -324,6 +334,62 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 		);
 
 		return $settings;
+	}
+
+	/**
+	 * Get voucher settings.
+	 *
+	 * @return array
+	 */
+	private function get_voucher_settings() {
+		return array(
+			array(
+				'title' => __( 'Voucher Configuration', 'codesoup-woo-boxnow' ),
+				'type'  => 'title',
+				'id'    => 'boxnow_voucher_settings',
+			),
+			array(
+				'title'   => __( 'Voucher Option', 'codesoup-woo-boxnow' ),
+				'id'      => 'boxnow_voucher_option',
+				'type'    => 'select',
+				'options' => array(
+					'button' => __( 'Button', 'codesoup-woo-boxnow' ),
+					'email'  => __( 'Email', 'codesoup-woo-boxnow' ),
+				),
+				'default' => 'button',
+				'desc_tip' => __( 'Button mode: Admin creates vouchers manually from order page. Email mode: Vouchers auto-created when order completes.', 'codesoup-woo-boxnow' ),
+			),
+			array(
+				'title' => __( 'Voucher Email', 'codesoup-woo-boxnow' ),
+				'id'    => 'boxnow_voucher_email',
+				'type'  => 'email',
+				'desc_tip' => __( 'Email for voucher notifications and origin contact.', 'codesoup-woo-boxnow' ),
+			),
+			array(
+				'title' => __( 'Mobile Number', 'codesoup-woo-boxnow' ),
+				'id'    => 'boxnow_mobile_number',
+				'type'  => 'text',
+				'desc_tip' => __( 'Contact phone number for origin warehouse.', 'codesoup-woo-boxnow' ),
+			),
+			array(
+				'title'       => __( 'Allow Returns', 'codesoup-woo-boxnow' ),
+				'id'          => 'boxnow_allow_returns',
+				'type'        => 'checkbox',
+				'default'     => 'yes',
+				'description' => __( 'Allow customers to return items via Box Now lockers', 'codesoup-woo-boxnow' ),
+			),
+			array(
+				'title'   => __( 'Show on Thank You Page', 'codesoup-woo-boxnow' ),
+				'id'      => 'boxnow_thankyou_page',
+				'type'    => 'checkbox',
+				'default' => 'yes',
+				'desc_tip' => __( 'Display voucher information on the order confirmation page.', 'codesoup-woo-boxnow' ),
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'boxnow_voucher_settings',
+			),
+		);
 	}
 
 

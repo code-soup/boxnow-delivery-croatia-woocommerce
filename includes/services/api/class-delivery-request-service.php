@@ -78,16 +78,17 @@ class Delivery_Request_Service {
 	 * Prepare delivery request data from order.
 	 *
 	 * @param \WC_Order $order             Order object.
-	 * @param int       $num_parcels       Number of parcels.
+	 * @param int       $num_vouchers      Number of vouchers.
 	 * @param int|null  $compartment_size  Single compartment size (1=small, 2=medium, 3=large).
 	 * @return array
 	 */
-	public function prepare_delivery_data( $order, $num_parcels = 1, $compartment_size = null ) {
-		$payment_method = $order->get_payment_method();
-		$is_cod         = 'cod' === $payment_method;
+	public function prepare_delivery_data( $order, $num_vouchers = 1, $compartment_size = null ) {
+		$payment_method         = $order->get_payment_method();
+		$is_cod                 = 'cod' === $payment_method;
+		$send_voucher_via_email = 'email' === get_option( 'boxnow_voucher_option', 'button' );
 
 		$items = array();
-		for ( $i = 0; $i < $num_parcels; $i++ ) {
+		for ( $i = 0; $i < $num_vouchers; $i++ ) {
 			$item_data = array(
 				'value'  => number_format( (float) $order->get_subtotal(), 2, '.', '' ),
 				'weight' => $this->calculate_order_weight( $order ),
@@ -102,15 +103,15 @@ class Delivery_Request_Service {
 		}
 
 		$data = array(
-			'notifyOnAccepted'    => '',
+			'notifyOnAccepted'    => $send_voucher_via_email ? get_option( 'boxnow_voucher_email', '' ) : '',
 			'orderNumber'         => (string) $order->get_id(),
 			'invoiceValue'        => $is_cod ? number_format( $order->get_total(), 2, '.', '' ) : '0',
 			'paymentMode'         => $is_cod ? 'cod' : 'prepaid',
 			'amountToBeCollected' => $is_cod ? number_format( $order->get_total(), 2, '.', '' ) : '0',
-			'allowReturn'         => false,
+			'allowReturn'         => (bool) get_option( 'boxnow_allow_returns', '1' ),
 			'origin'              => array(
-				'contactNumber' => '',
-				'contactEmail'  => '',
+				'contactNumber' => get_option( 'boxnow_mobile_number', '' ),
+				'contactEmail'  => get_option( 'boxnow_voucher_email', '' ),
 				'locationId'    => $order->get_meta( '_selected_warehouse', true ),
 			),
 			'destination'         => array(

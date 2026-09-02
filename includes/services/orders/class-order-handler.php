@@ -11,6 +11,7 @@ use CodeSoup\BoxNow\Core\Hooker;
 use CodeSoup\BoxNow\Services\API\Delivery_Request_Service;
 use CodeSoup\BoxNow\Services\API\Parcel_Service;
 use CodeSoup\BoxNow\Helpers\Order_Helper;
+use CodeSoup\BoxNow\Constants\Meta_Keys;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -63,6 +64,7 @@ class Order_Handler {
 		$this->hooker->add_filter( 'woocommerce_admin_order_actions', $this, 'add_cancel_button', 10, 2 );
 		$this->hooker->add_action( 'admin_enqueue_scripts', $this, 'add_cancel_button_css' );
 		$this->hooker->add_action( 'woocommerce_admin_order_data_after_shipping_address', $this, 'display_locker_details_in_admin', 10, 1 );
+		$this->hooker->add_action( 'woocommerce_admin_order_data_after_shipping_address', $this, 'display_voucher_metabox', 20, 1 );
 	}
 
 	/**
@@ -77,7 +79,7 @@ class Order_Handler {
 			return;
 		}
 
-		if ( $order->get_meta( '_boxnow_parcel_id', true ) ) {
+		if ( $order->get_meta( Meta_Keys::VOUCHER_CREATED, true ) ) {
 			return;
 		}
 
@@ -85,7 +87,8 @@ class Order_Handler {
 		$response = $this->delivery_service->create_delivery_request( $data );
 
 		if ( $response && isset( $response['parcels'][0]['id'] ) ) {
-			$order->update_meta_data( '_boxnow_parcel_id', $response['parcels'][0]['id'] );
+			$order->update_meta_data( Meta_Keys::PARCEL_ID, $response['parcels'][0]['id'] );
+			$order->update_meta_data( Meta_Keys::VOUCHER_CREATED, 'yes' );
 			$order->save();
 		}
 	}
@@ -222,6 +225,108 @@ class Order_Handler {
 				<?php echo esc_html( $locker_country ); ?>
 			</p>
 			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Display voucher creation metabox in admin order screen.
+	 *
+	 * @param \WC_Order $order Order object.
+	 */
+	public function display_voucher_metabox( $order ): void {
+		// Only show for BoxNow orders
+		if ( ! Order_Helper::is_box_now_order( $order ) ) {
+			return;
+		}
+
+		// Only show in button mode
+		if ( 'button' !== get_option( 'boxnow_voucher_option', 'button' ) ) {
+			return;
+		}
+
+		// Calculate max vouchers from order items
+		$max_vouchers = 0;
+		foreach ( $order->get_items() as $item ) {
+			$max_vouchers += $item->get_quantity();
+		}
+
+		// Get existing parcel IDs
+		$parcel_ids = $order->get_meta( Meta_Keys::PARCEL_IDS, true );
+		if ( ! is_array( $parcel_ids ) ) {
+			$parcel_ids = ! empty( $parcel_ids ) ? array( $parcel_ids ) : array();
+		}
+
+		// Check if vouchers already created
+		$vouchers_created = $order->get_meta( Meta_Keys::VOUCHERS_CREATED, true );
+		$button_disabled  = $vouchers_created ? 'disabled' : '';
+
+		?>
+		<div class="box-now-vouchers" style="margin-top: 20px; padding: 12px; background: #f9f9f9; border: 1px solid #ddd;">
+			<h4 style="margin-top: 0;"><?php esc_html_e( 'Create BOX NOW Voucher(s)', 'codesoup-woo-boxnow' ); ?></h4>
+			<p>
+				<?php
+				echo esc_html(
+					sprintf(
+						/* translators: %d: maximum number of vouchers */
+						__( 'Vouchers for this order (Max Vouchers: %d)', 'codesoup-woo-boxnow' ),
+						$max_vouchers
+					)
+				);
+				?>
+			</p>
+
+			<!-- Hidden fields -->
+			<input type="hidden" id="box_now_order_id" value="<?php echo esc_attr( $order->get_id() ); ?>" />
+			<input type="hidden" id="box_now_parcel_ids" value="<?php echo esc_attr( wp_json_encode( $parcel_ids ) ); ?>" />
+			<input type="hidden" id="create_vouchers_enabled" value="true" />
+			<input type="hidden" id="max_vouchers" value="<?php echo esc_attr( $max_vouchers ); ?>" />
+
+			<!-- Quantity input -->
+			<input
+				type="number"
+				id="box_now_voucher_code"
+				name="box_now_voucher_code"
+				min="1"
+				max="<?php echo esc_attr( $max_vouchers ); ?>"
+				value="1"
+				placeholder="<?php esc_attr_e( 'Enter voucher quantity', 'codesoup-woo-boxnow' ); ?>"
+				style="width: 100px; margin-right: 10px;"
+			/>
+
+			<!-- Compartment size buttons -->
+			<div class="box-now-compartment-size-buttons" style="margin-top: 10px;">
+				<button
+					type="button"
+					id="box_now_create_voucher_small"
+					class="button button-primary"
+					data-compartment-size="small"
+					<?php echo esc_attr( $button_disabled ); ?>
+				>
+					<?php esc_html_e( 'Create Vouchers (Small)', 'codesoup-woo-boxnow' ); ?>
+				</button>
+				<button
+					type="button"
+					id="box_now_create_voucher_medium"
+					class="button button-primary"
+					data-compartment-size="medium"
+					<?php echo esc_attr( $button_disabled ); ?>
+				>
+					<?php esc_html_e( 'Create Vouchers (Medium)', 'codesoup-woo-boxnow' ); ?>
+				</button>
+				<button
+					type="button"
+					id="box_now_create_voucher_large"
+					class="button button-primary"
+					data-compartment-size="large"
+					<?php echo esc_attr( $button_disabled ); ?>
+				>
+					<?php esc_html_e( 'Create Vouchers (Large)', 'codesoup-woo-boxnow' ); ?>
+				</button>
+			</div>
+
+			<!-- Parcel links container (populated by JavaScript) -->
+			<div id="box_now_voucher_link" style="margin-top: 10px;"></div>
 		</div>
 		<?php
 	}

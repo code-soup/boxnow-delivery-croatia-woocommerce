@@ -40,6 +40,12 @@ final class Meta_Keys {
 	const PARCEL_IDS = '_boxnow_parcel_ids'; // Array of parcel IDs (manual creation)
 
 	/**
+	 * Voucher Flags
+	 */
+	const VOUCHER_CREATED  = '_voucher_created';         // Flag: 'yes' or empty (auto-creation)
+	const VOUCHERS_CREATED = '_boxnow_vouchers_created'; // Flag: 1 or empty (manual creation)
+
+	/**
 	 * Prevent instantiation.
 	 */
 	private function __construct() {}

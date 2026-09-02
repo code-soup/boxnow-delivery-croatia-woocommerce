@@ -47,6 +47,15 @@ final class Option_Keys {
 	const LOCKER_NOT_SELECTED_MESSAGE = 'boxnow_locker_not_selected_message';
 
 	/**
+	 * Voucher Settings
+	 */
+	const VOUCHER_OPTION        = 'boxnow_voucher_option';
+	const VOUCHER_EMAIL         = 'boxnow_voucher_email';
+	const MOBILE_NUMBER         = 'boxnow_mobile_number';
+	const ALLOW_RETURNS         = 'boxnow_allow_returns';
+	const THANKYOU_PAGE_DISPLAY = 'boxnow_thankyou_page';
+
+	/**
 	 * Prevent instantiation.
 	 */
 	private function __construct() {}
