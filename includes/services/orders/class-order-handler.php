@@ -259,7 +259,7 @@ class Order_Handler {
 
 		// Check if vouchers already created
 		$vouchers_created = $order->get_meta( Meta_Keys::VOUCHERS_CREATED, true );
-		$button_disabled  = $vouchers_created ? 'disabled' : '';
+		$is_disabled      = (bool) $vouchers_created;
 
 		?>
 		<div class="box-now-vouchers" style="margin-top: 20px; padding: 12px; background: #f9f9f9; border: 1px solid #ddd;">
@@ -301,7 +301,7 @@ class Order_Handler {
 					id="box_now_create_voucher_small"
 					class="button button-primary"
 					data-compartment-size="small"
-					<?php echo esc_attr( $button_disabled ); ?>
+					<?php disabled( $is_disabled ); ?>
 				>
 					<?php esc_html_e( 'Create Vouchers (Small)', 'codesoup-woo-boxnow' ); ?>
 				</button>
@@ -310,7 +310,7 @@ class Order_Handler {
 					id="box_now_create_voucher_medium"
 					class="button button-primary"
 					data-compartment-size="medium"
-					<?php echo esc_attr( $button_disabled ); ?>
+					<?php disabled( $is_disabled ); ?>
 				>
 					<?php esc_html_e( 'Create Vouchers (Medium)', 'codesoup-woo-boxnow' ); ?>
 				</button>
@@ -319,7 +319,7 @@ class Order_Handler {
 					id="box_now_create_voucher_large"
 					class="button button-primary"
 					data-compartment-size="large"
-					<?php echo esc_attr( $button_disabled ); ?>
+					<?php disabled( $is_disabled ); ?>
 				>
 					<?php esc_html_e( 'Create Vouchers (Large)', 'codesoup-woo-boxnow' ); ?>
 				</button>

@@ -85,7 +85,14 @@ class Delivery_Request_Service {
 	public function prepare_delivery_data( $order, $num_vouchers = 1, $compartment_size = null ) {
 		$payment_method         = $order->get_payment_method();
 		$is_cod                 = 'cod' === $payment_method;
-		$send_voucher_via_email = 'email' === get_option( 'boxnow_voucher_option', 'button' );
+
+		// Fetch all options once to avoid multiple DB queries
+		$voucher_option = get_option( 'boxnow_voucher_option', 'button' );
+		$voucher_email  = get_option( 'boxnow_voucher_email', '' );
+		$mobile_number  = get_option( 'boxnow_mobile_number', '' );
+		$allow_returns  = get_option( 'boxnow_allow_returns', 'no' );
+
+		$send_voucher_via_email = 'email' === $voucher_option;
 
 		$items = array();
 		for ( $i = 0; $i < $num_vouchers; $i++ ) {
@@ -103,15 +110,15 @@ class Delivery_Request_Service {
 		}
 
 		$data = array(
-			'notifyOnAccepted'    => $send_voucher_via_email ? get_option( 'boxnow_voucher_email', '' ) : '',
+			'notifyOnAccepted'    => $send_voucher_via_email ? $voucher_email : '',
 			'orderNumber'         => (string) $order->get_id(),
 			'invoiceValue'        => $is_cod ? number_format( $order->get_total(), 2, '.', '' ) : '0',
 			'paymentMode'         => $is_cod ? 'cod' : 'prepaid',
 			'amountToBeCollected' => $is_cod ? number_format( $order->get_total(), 2, '.', '' ) : '0',
-			'allowReturn'         => (bool) get_option( 'boxnow_allow_returns', '1' ),
+			'allowReturn'         => 'yes' === $allow_returns,
 			'origin'              => array(
-				'contactNumber' => get_option( 'boxnow_mobile_number', '' ),
-				'contactEmail'  => get_option( 'boxnow_voucher_email', '' ),
+				'contactNumber' => $mobile_number,
+				'contactEmail'  => $voucher_email,
 				'locationId'    => $order->get_meta( '_selected_warehouse', true ),
 			),
 			'destination'         => array(

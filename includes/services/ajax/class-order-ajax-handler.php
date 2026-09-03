@@ -99,9 +99,32 @@ class Order_AJAX_Handler {
 			wp_send_json_error( __( 'Invalid order ID.', 'codesoup-woo-boxnow' ), 400 );
 		}
 
+		// Validate compartment size (1=small, 2=medium, 3=large)
+		if ( null !== $compartment_size && ! in_array( $compartment_size, array( 1, 2, 3 ), true ) ) {
+			wp_send_json_error( __( 'Invalid compartment size.', 'codesoup-woo-boxnow' ), 400 );
+		}
+
 		$order = wc_get_order( $order_id );
 		if ( ! $order || ! Order_Helper::is_box_now_order( $order ) ) {
 			wp_send_json_error( __( 'Invalid BoxNow order.', 'codesoup-woo-boxnow' ), 400 );
+		}
+
+		// Calculate max vouchers from order items
+		$max_vouchers = 0;
+		foreach ( $order->get_items() as $item ) {
+			$max_vouchers += $item->get_quantity();
+		}
+
+		// Validate voucher quantity
+		if ( $voucher_quantity < 1 || $voucher_quantity > $max_vouchers ) {
+			wp_send_json_error(
+				sprintf(
+					/* translators: %d: maximum allowed vouchers */
+					__( 'Invalid voucher quantity. Maximum allowed: %d', 'codesoup-woo-boxnow' ),
+					$max_vouchers
+				),
+				400
+			);
 		}
 
 		try {
@@ -141,7 +164,7 @@ class Order_AJAX_Handler {
 
 		} catch ( \Exception $e ) {
 			$this->log_error( 'Failed to create vouchers: ' . $e->getMessage() );
-			wp_send_json_error( $e->getMessage(), 500 );
+			wp_send_json_error( esc_html( $e->getMessage() ), 500 );
 		}
 	}
 

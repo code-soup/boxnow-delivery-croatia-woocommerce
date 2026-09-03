@@ -360,16 +360,22 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 				'desc_tip' => __( 'Button mode: Admin creates vouchers manually from order page. Email mode: Vouchers auto-created when order completes.', 'codesoup-woo-boxnow' ),
 			),
 			array(
-				'title' => __( 'Voucher Email', 'codesoup-woo-boxnow' ),
-				'id'    => 'boxnow_voucher_email',
-				'type'  => 'email',
-				'desc_tip' => __( 'Email for voucher notifications and origin contact.', 'codesoup-woo-boxnow' ),
+				'title'    => __( 'Voucher Email', 'codesoup-woo-boxnow' ),
+				'id'       => 'boxnow_voucher_email',
+				'type'     => 'email',
+				'desc_tip' => __( 'Email for voucher notifications and origin contact. Required for API requests.', 'codesoup-woo-boxnow' ),
+				'custom_attributes' => array(
+					'required' => 'required',
+				),
 			),
 			array(
-				'title' => __( 'Mobile Number', 'codesoup-woo-boxnow' ),
-				'id'    => 'boxnow_mobile_number',
-				'type'  => 'text',
-				'desc_tip' => __( 'Contact phone number for origin warehouse.', 'codesoup-woo-boxnow' ),
+				'title'    => __( 'Mobile Number', 'codesoup-woo-boxnow' ),
+				'id'       => 'boxnow_mobile_number',
+				'type'     => 'text',
+				'desc_tip' => __( 'Contact phone number for origin warehouse. Required for API requests.', 'codesoup-woo-boxnow' ),
+				'custom_attributes' => array(
+					'required' => 'required',
+				),
 			),
 			array(
 				'title'       => __( 'Allow Returns', 'codesoup-woo-boxnow' ),
