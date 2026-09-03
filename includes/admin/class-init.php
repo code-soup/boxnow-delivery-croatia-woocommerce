@@ -48,7 +48,11 @@ class Init {
 
 		// Only enqueue on order edit screen.
 		$screen = get_current_screen();
-		if ( ! $screen || 'shop_order' !== $screen->id ) {
+
+		// Support both traditional and HPOS order screens
+		$valid_screens = array( 'shop_order', 'woocommerce_page_wc-orders' );
+
+		if ( ! $screen || ! in_array( $screen->id, $valid_screens, true ) ) {
 			return;
 		}
 
