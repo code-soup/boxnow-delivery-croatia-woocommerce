@@ -7,6 +7,8 @@
 
 namespace CodeSoup\BoxNow\Integrations\WooCommerce;
 
+use CodeSoup\BoxNow\Constants\Option_Keys;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -37,8 +39,9 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 	 */
 	protected function get_own_sections() {
 		return array(
-			''       => __( 'API Settings', 'codesoup-woo-boxnow' ),
-			'widget' => __( 'Widget Settings', 'codesoup-woo-boxnow' ),
+			''        => __( 'API Settings', 'codesoup-woo-boxnow' ),
+			'widget'  => __( 'Widget Settings', 'codesoup-woo-boxnow' ),
+			'voucher' => __( 'Voucher Settings', 'codesoup-woo-boxnow' ),
 		);
 	}
 
@@ -63,6 +66,15 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 		return $this->get_widget_settings();
 	}
 
+	/**
+	 * Get settings for the voucher section.
+	 *
+	 * @return array
+	 */
+	protected function get_settings_for_voucher_section() {
+		return $this->get_voucher_settings();
+	}
+
 
 
 	/**
@@ -79,7 +91,7 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			),
 			array(
 				'title'       => __( 'API URL', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_api_url',
+				'id'          => Option_Keys::API_URL,
 				'type'        => 'text',
 				'default'     => 'api.boxnow.hr',
 				'desc_tip'    => __( 'BoxNow API endpoint URL. Use api.boxnow.hr for Croatia.', 'codesoup-woo-boxnow' ),
@@ -87,28 +99,28 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			),
 			array(
 				'title'       => __( 'Client ID', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_client_id',
+				'id'          => Option_Keys::CLIENT_ID,
 				'type'        => 'text',
 				'desc_tip'    => __( 'Your BoxNow API client identifier.', 'codesoup-woo-boxnow' ),
 				'description' => __( 'Obtain this credential from BoxNow support.', 'codesoup-woo-boxnow' ),
 			),
 			array(
 				'title'       => __( 'Client Secret', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_client_secret',
+				'id'          => Option_Keys::CLIENT_SECRET,
 				'type'        => 'password',
 				'desc_tip'    => __( 'Your BoxNow API client secret key.', 'codesoup-woo-boxnow' ),
 				'description' => __( 'Keep this confidential. Obtain from BoxNow support.', 'codesoup-woo-boxnow' ),
 			),
 			array(
 				'title'       => __( 'Partner ID', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_partner_id',
+				'id'          => Option_Keys::PARTNER_ID,
 				'type'        => 'text',
 				'desc_tip'    => __( 'Your BoxNow partner identifier.', 'codesoup-woo-boxnow' ),
 				'description' => __( 'Obtain this from BoxNow support.', 'codesoup-woo-boxnow' ),
 			),
 			array(
 				'title'       => __( 'Warehouse ID', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_warehouse_id',
+				'id'          => Option_Keys::WAREHOUSE_ID,
 				'type'        => 'text',
 				'desc_tip'    => __( 'Comma-separated warehouse location IDs for parcel origin.', 'codesoup-woo-boxnow' ),
 				'description' => __( 'Example: WAREHOUSE_1,WAREHOUSE_2', 'codesoup-woo-boxnow' ),
@@ -223,7 +235,7 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			),
 			array(
 				'title'       => __( 'Button Color', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_button_color',
+				'id'          => Option_Keys::BUTTON_COLOR,
 				'type'        => 'color',
 				'default'     => '#6CD04E',
 				'css'         => 'width: 6em;',
@@ -232,7 +244,7 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			),
 			array(
 				'title'       => __( 'Button Text', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_button_text',
+				'id'          => Option_Keys::BUTTON_TEXT,
 				'type'        => 'text',
 				'default'     => 'Pick a Locker',
 				'desc_tip'    => __( 'Text displayed on the locker selection button.', 'codesoup-woo-boxnow' ),
@@ -240,7 +252,7 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			),
 			array(
 				'title'       => __( 'Button Description', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_button_description',
+				'id'          => Option_Keys::BUTTON_DESCRIPTION,
 				'type'        => 'textarea',
 				'default'     => '',
 				'desc_tip'    => __( 'Optional description text displayed below the locker selection button.', 'codesoup-woo-boxnow' ),
@@ -249,7 +261,7 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			),
 			array(
 				'title'       => __( 'Button Position', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_button_position',
+				'id'          => Option_Keys::BUTTON_POSITION,
 				'type'        => 'select',
 				'options'     => array(
 					'inline'   => __( 'Inline with shipping method', 'codesoup-woo-boxnow' ),
@@ -263,7 +275,7 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			),
 			array(
 				'title'       => __( 'Locker Not Selected Text', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_locker_not_selected_message',
+				'id'          => Option_Keys::LOCKER_NOT_SELECTED_MESSAGE,
 				'type'        => 'text',
 				'default'     => 'Please select a locker first!',
 				'desc_tip'    => __( 'Error message shown when customer attempts checkout without selecting a locker.', 'codesoup-woo-boxnow' ),
@@ -272,13 +284,13 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			array(
 				'title'   => __( 'Geolocation', 'codesoup-woo-boxnow' ),
 				'desc'    => __( 'Use browser geolocation to auto-center map on customer location', 'codesoup-woo-boxnow' ),
-				'id'      => 'boxnow_enable_geolocation',
+				'id'      => Option_Keys::ENABLE_GEOLOCATION,
 				'type'    => 'checkbox',
 				'default' => 'yes',
 			),
 			array(
 				'title'       => __( 'Locker Select Map', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_display_mode',
+				'id'          => Option_Keys::DISPLAY_MODE,
 				'type'        => 'select',
 				'options'     => array(
 					'popup'    => __( 'Popup', 'codesoup-woo-boxnow' ),
@@ -292,14 +304,14 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			array(
 				'title'   => __( 'Enable Pay with Card at Locker', 'codesoup-woo-boxnow' ),
 				'desc'    => __( 'Allow paying at the locker', 'codesoup-woo-boxnow' ),
-				'id'      => 'boxnow_enable_pay_at_locker',
+				'id'      => Option_Keys::ENABLE_PAY_AT_LOCKER,
 				'type'    => 'checkbox',
 				'default' => 'no',
 			),
 			array(
 				'title'       => __( 'Payment Method Title', 'codesoup-woo-boxnow' ),
 				'desc'        => __( 'The title shown to customers for card payment at locker', 'codesoup-woo-boxnow' ),
-				'id'          => 'boxnow_pay_at_locker_title',
+				'id'          => Option_Keys::PAY_AT_LOCKER_TITLE,
 				'type'        => 'text',
 				'default'     => __( 'Pay with Card at BoxNow', 'codesoup-woo-boxnow' ),
 				'desc_tip'    => true,
@@ -307,7 +319,7 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 			array(
 				'title'    => __( 'Allowed Payment Methods', 'codesoup-woo-boxnow' ),
 				'desc_tip' => __( 'Select which payment methods are available when BoxNow shipping is selected.', 'codesoup-woo-boxnow' ),
-				'id'       => 'boxnow_allowed_payment_methods',
+				'id'       => Option_Keys::ALLOWED_PAYMENT_METHODS,
 				'type'     => 'checkbox_group',
 				'options'  => $this->get_available_payment_gateways(),
 				'default'  => array_keys( $this->get_available_payment_gateways() ),
@@ -324,6 +336,68 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 		);
 
 		return $settings;
+	}
+
+	/**
+	 * Get voucher settings.
+	 *
+	 * @return array
+	 */
+	private function get_voucher_settings() {
+		return array(
+			array(
+				'title' => __( 'Voucher Configuration', 'codesoup-woo-boxnow' ),
+				'type'  => 'title',
+				'id'    => 'boxnow_voucher_settings',
+			),
+			array(
+				'title'   => __( 'Voucher Option', 'codesoup-woo-boxnow' ),
+				'id'      => Option_Keys::VOUCHER_OPTION,
+				'type'    => 'select',
+				'options' => array(
+					'button' => __( 'Button', 'codesoup-woo-boxnow' ),
+					'email'  => __( 'Email', 'codesoup-woo-boxnow' ),
+				),
+				'default' => 'button',
+				'desc_tip' => __( 'Button mode: Admin creates vouchers manually from order page. Email mode: Vouchers auto-created when order completes.', 'codesoup-woo-boxnow' ),
+			),
+			array(
+				'title'    => __( 'Voucher Email', 'codesoup-woo-boxnow' ),
+				'id'       => Option_Keys::VOUCHER_EMAIL,
+				'type'     => 'email',
+				'desc_tip' => __( 'Email for voucher notifications and origin contact. Required for API requests.', 'codesoup-woo-boxnow' ),
+				'custom_attributes' => array(
+					'required' => 'required',
+				),
+			),
+			array(
+				'title'    => __( 'Mobile Number', 'codesoup-woo-boxnow' ),
+				'id'       => Option_Keys::MOBILE_NUMBER,
+				'type'     => 'text',
+				'desc_tip' => __( 'Contact phone number for origin warehouse. Required for API requests.', 'codesoup-woo-boxnow' ),
+				'custom_attributes' => array(
+					'required' => 'required',
+				),
+			),
+			array(
+				'title'       => __( 'Allow Returns', 'codesoup-woo-boxnow' ),
+				'id'          => Option_Keys::ALLOW_RETURNS,
+				'type'        => 'checkbox',
+				'default'     => 'yes',
+				'description' => __( 'Allow customers to return items via Box Now lockers', 'codesoup-woo-boxnow' ),
+			),
+			array(
+				'title'   => __( 'Show on Thank You Page', 'codesoup-woo-boxnow' ),
+				'id'      => Option_Keys::THANKYOU_PAGE_DISPLAY,
+				'type'    => 'checkbox',
+				'default' => 'yes',
+				'desc_tip' => __( 'Display voucher information on the order confirmation page.', 'codesoup-woo-boxnow' ),
+			),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'boxnow_voucher_settings',
+			),
+		);
 	}
 
 

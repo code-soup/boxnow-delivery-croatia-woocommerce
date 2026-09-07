@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace CodeSoup\BoxNow\Services;
 
+use CodeSoup\BoxNow\Constants\Option_Keys;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -28,7 +30,7 @@ class Settings_Service {
 	/**
 	 * Option key prefix.
 	 */
-	const PREFIX = 'boxnow_';
+	const PREFIX = 'codesoup_boxnow_';
 
 	/**
 	 * Get a setting value.
@@ -107,10 +109,11 @@ class Settings_Service {
 	 */
 	public function get_api_config(): array {
 		return array(
-			'api_url'       => $this->get( 'api_url' ),
-			'client_id'     => $this->get( 'client_id' ),
-			'client_secret' => $this->get( 'client_secret' ),
-			'partner_id'    => $this->get( 'partner_id' ),
+			'api_url'       => get_option( Option_Keys::API_URL, '' ),
+			'client_id'     => get_option( Option_Keys::CLIENT_ID, '' ),
+			'client_secret' => get_option( Option_Keys::CLIENT_SECRET, '' ),
+			'partner_id'    => get_option( Option_Keys::PARTNER_ID, '' ),
+			'warehouse_id'  => get_option( Option_Keys::WAREHOUSE_ID, '' ),
 		);
 	}
 

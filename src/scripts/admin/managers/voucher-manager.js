@@ -3,28 +3,15 @@
  * No jQuery - uses native fetch.
  */
 import { safeJsonParse, isStringArray, sanitizeErrorMessage } from '../../checkout/utils/validation-helpers.js';
+import * as FormFields from '../constants/form-fields.js';
 
 export class VoucherManager {
-	/**
-	 * Size mapping for compartments
-	 */
-	static SIZE_MAPPING = {
-		small: 1,
-		medium: 2,
-		large: 3,
-	};
-
-	/**
-	 * Button size identifiers
-	 */
-	static SIZES = ['small', 'medium', 'large'];
-
 	/**
 	 * @param {Object} apiClient - API client for AJAX calls
 	 */
 	constructor(apiClient) {
 		this.apiClient = apiClient;
-		this.buttons = [];
+		this.button = null;
 	}
 
 	/**
@@ -32,47 +19,47 @@ export class VoucherManager {
 	 */
 	init() {
 		// Get elements
-		const enabledField = document.getElementById('create_vouchers_enabled');
+		const enabledField = document.getElementById(FormFields.VOUCHER_CREATE_ENABLED);
 		const isEnabled = enabledField && enabledField.value === 'true';
 
-		// Get all buttons
-		this.buttons = [
-			document.getElementById('box_now_create_voucher_small'),
-			document.getElementById('box_now_create_voucher_medium'),
-			document.getElementById('box_now_create_voucher_large'),
-		];
+		// Get the create button
+		this.button = document.getElementById(FormFields.VOUCHER_CREATE_BUTTON);
 
-		// Setup each button
-		VoucherManager.SIZES.forEach((size, index) => {
-			const button = this.buttons[index];
-			
-			if (!button) {
-				return;
-			}
+		if (!this.button) {
+			return;
+		}
 
-			// Enable/disable based on settings
-			button.disabled = !isEnabled;
+		// Enable/disable based on settings
+		this.button.disabled = !isEnabled;
 
-			if (isEnabled) {
-				this.#attachCreateListener(button, size);
-			}
-		});
+		if (isEnabled) {
+			this.#attachCreateListener(this.button);
+		}
 
-		// Check if vouchers already exist and disable buttons
+		// Check if vouchers already exist and disable button
 		this.#checkExistingVouchers();
+
+		// Attach cancel-all listener
+		this.#attachCancelAllListener();
+
+		// Update button state on load
+		this.#updateButtonState();
 	}
 
 	/**
 	 * Attach create voucher click listener
 	 * @private
 	 * @param {HTMLElement} button - Button element
-	 * @param {string} size - Size (small, medium, large)
 	 */
-	#attachCreateListener(button, size) {
+	#attachCreateListener(button) {
 		button.addEventListener('click', async () => {
-			const orderId = document.getElementById('box_now_order_id')?.value;
-			const voucherQuantity = document.getElementById('box_now_voucher_code')?.value;
-			const maxVouchers = parseInt(document.getElementById('max_vouchers')?.value, 10);
+			const orderId = document.getElementById(FormFields.VOUCHER_ORDER_ID)?.value;
+			const voucherQuantity = document.getElementById(FormFields.VOUCHER_QUANTITY_INPUT)?.value;
+			const maxVouchers = parseInt(document.getElementById(FormFields.VOUCHER_MAX_VOUCHERS)?.value, 10);
+
+			// Get selected compartment size (radio button)
+			const selectedRadio = document.querySelector(`input[name="${FormFields.VOUCHER_COMPARTMENT_SIZE}"]:checked`);
+			const compartmentSize = selectedRadio ? parseInt(selectedRadio.value, 10) : null;
 
 			// Validation
 			if (!orderId || !voucherQuantity) {
@@ -85,6 +72,11 @@ export class VoucherManager {
 				return;
 			}
 
+			if (!compartmentSize) {
+				alert('Please select a compartment size.');
+				return;
+			}
+
 			// Disable button during request
 			button.disabled = true;
 
@@ -92,23 +84,36 @@ export class VoucherManager {
 				const response = await this.apiClient.post('create_box_now_vouchers', {
 					order_id: orderId,
 					voucher_quantity: voucherQuantity,
-					compartment_size: VoucherManager.SIZE_MAPPING[size],
+					compartment_size: compartmentSize,
 				});
 
-				if (response.success && response.data?.new_parcel_ids) {
+				if (response.success && response.data?.new_parcel_ids && response.data?.html) {
 					const parcelIds = response.data.new_parcel_ids;
+					const html = response.data.html;
 
 					// Update hidden field
-					const parcelIdsField = document.getElementById('box_now_parcel_ids');
+					const parcelIdsField = document.getElementById(FormFields.VOUCHER_PARCEL_IDS);
 					if (parcelIdsField) {
 						parcelIdsField.value = JSON.stringify(parcelIds);
 					}
 
-					// Display parcel links
-					this.displayParcelLinks(parcelIds);
+					// Update current count
+					const currentCountField = document.getElementById(FormFields.VOUCHER_CURRENT_COUNT);
+					if (currentCountField) {
+						currentCountField.value = parcelIds.length.toString();
+					}
 
-					// Disable all buttons after creation
-					this.buttons.forEach(btn => btn && (btn.disabled = true));
+					// Show table and insert HTML
+					this.#showVoucherTable();
+
+					const container = document.getElementById(FormFields.VOUCHER_LINK_CONTAINER);
+					if (container) {
+						container.innerHTML = html;
+						this.#attachLinkListeners(container);
+					}
+
+					// Update button state
+					this.#updateButtonState();
 				} else {
 					alert('Error: New parcel IDs are not available in the response data.');
 					button.disabled = false;
@@ -121,62 +126,49 @@ export class VoucherManager {
 	}
 
 	/**
-	 * Check for existing vouchers and disable buttons if found
+	 * Check for existing vouchers and attach listeners
 	 * @private
 	 */
 	#checkExistingVouchers() {
-		const parcelIdsField = document.getElementById('box_now_parcel_ids');
-
-		if (!parcelIdsField) {
-			return;
-		}
-
-		const parcelIds = safeJsonParse(parcelIdsField.value, []);
-
-		if (!isStringArray(parcelIds)) {
-			console.warn('Invalid parcel IDs format');
-			return;
-		}
-		
-		// Display existing parcel links
-		if (parcelIds.length > 0) {
-			this.displayParcelLinks(parcelIds);
-			
-			// Disable all buttons if vouchers exist
-			this.buttons.forEach(btn => btn && (btn.disabled = true));
+		// Attach listeners to pre-rendered parcel items (if any)
+		const container = document.getElementById(FormFields.VOUCHER_LINK_CONTAINER);
+		if (container && container.children.length > 0) {
+			this.#attachLinkListeners(container);
 		}
 	}
 
 	/**
-	 * Display parcel ID links
-	 * @param {Array<string>} parcelIds - Array of parcel IDs
+	 * Show voucher table and hide "no vouchers" message
+	 * @private
 	 */
-	displayParcelLinks(parcelIds) {
-		const container = document.getElementById('box_now_voucher_link');
-		
-		if (!container) {
+	#showVoucherTable() {
+		const vouchersColumn = document.getElementById('codesoup-boxnow-vouchers-column');
+		if (!vouchersColumn) {
 			return;
 		}
 
-		// Clear container
-		container.innerHTML = '';
+		// Hide "no vouchers" message
+		const noVouchersMsg = vouchersColumn.querySelector('.codesoup-boxnow-no-vouchers');
+		if (noVouchersMsg) {
+			noVouchersMsg.remove();
+		}
 
-		// Add links for each parcel
-		parcelIds.forEach(parcelId => {
-			const orderId = document.getElementById('box_now_order_id')?.value;
+		// Create table if it doesn't exist
+		let table = vouchersColumn.querySelector('.form-table');
+		if (!table) {
+			table = document.createElement('table');
+			table.className = 'form-table';
 
-			const html = `
-				<a href="#" data-parcel-id="${parcelId}" class="parcel-id-link box-now-link">&#128196; ${parcelId}</a>
-				<button class="cancel-voucher-btn" data-order-id="${orderId}" data-parcel-id="${parcelId}" style="color: white; background-color: red; margin: 4px 0; border: none; border-radius: 4px; cursor: pointer; padding: 6px 12px; font-size: 13px;">&#9664; Cancel Voucher</button>
-				<br>
-			`;
+			const tbody = document.createElement('tbody');
+			tbody.id = FormFields.VOUCHER_LINK_CONTAINER;
+			tbody.className = FormFields.VOUCHER_LINK_CLASS;
 
-			container.insertAdjacentHTML('beforeend', html);
-		});
-
-		// Attach event delegation
-		this.#attachLinkListeners(container);
+			table.appendChild(tbody);
+			vouchersColumn.appendChild(table);
+		}
 	}
+
+
 
 	/**
 	 * Attach event listeners to parcel links container
@@ -186,19 +178,106 @@ export class VoucherManager {
 	#attachLinkListeners(container) {
 		container.addEventListener('click', async (event) => {
 			// Handle parcel link click
-			if (event.target.matches('.parcel-id-link')) {
+			if (event.target.matches('.codesoup-boxnow-parcel-link')) {
 				event.preventDefault();
 				const parcelId = event.target.getAttribute('data-parcel-id');
 				const url = `${this.apiClient.ajaxUrl}?action=print_box_now_voucher&parcel_id=${parcelId}`;
-				window.open(url, '_blank', 'noopener,noreferrer');
+				this.#showPdfModal(url, parcelId);
 			}
 
 			// Handle cancel button click
-			if (event.target.matches('.cancel-voucher-btn')) {
+			if (event.target.matches('.codesoup-boxnow-cancel-voucher')) {
 				event.preventDefault();
 				await this.#handleCancelVoucher(event.target);
 			}
 		});
+	}
+
+	/**
+	 * Show PDF in modal viewer
+	 * @private
+	 * @param {string} url - PDF URL
+	 * @param {string} parcelId - Parcel ID
+	 */
+	#showPdfModal(url, parcelId) {
+		// Create modal overlay
+		const overlay = document.createElement('div');
+		overlay.className = 'codesoup-boxnow-pdf-modal-overlay';
+
+		// Create modal container
+		const modal = document.createElement('div');
+		modal.className = 'codesoup-boxnow-pdf-modal';
+
+		// Create header
+		const header = document.createElement('div');
+		header.className = 'codesoup-boxnow-pdf-modal-header';
+
+		const title = document.createElement('h2');
+		title.textContent = `Voucher: ${parcelId}`;
+
+		const closeBtn = document.createElement('button');
+		closeBtn.className = 'codesoup-boxnow-pdf-modal-close';
+		closeBtn.innerHTML = '&times;';
+		closeBtn.setAttribute('aria-label', 'Close');
+
+		header.appendChild(title);
+		header.appendChild(closeBtn);
+
+		// Create PDF viewer (iframe)
+		const iframe = document.createElement('iframe');
+		iframe.className = 'codesoup-boxnow-pdf-viewer';
+		iframe.src = url;
+		iframe.setAttribute('title', `Voucher PDF ${parcelId}`);
+
+		// Create footer with actions
+		const footer = document.createElement('div');
+		footer.className = 'codesoup-boxnow-pdf-modal-footer';
+
+		const downloadBtn = document.createElement('a');
+		downloadBtn.href = url;
+		downloadBtn.download = `voucher-${parcelId}.pdf`;
+		downloadBtn.className = 'button button-primary';
+		downloadBtn.textContent = 'Download PDF';
+
+		const openNewTabBtn = document.createElement('a');
+		openNewTabBtn.href = url;
+		openNewTabBtn.target = '_blank';
+		openNewTabBtn.rel = 'noopener noreferrer';
+		openNewTabBtn.className = 'button button-secondary';
+		openNewTabBtn.textContent = 'Open in New Tab';
+
+		footer.appendChild(downloadBtn);
+		footer.appendChild(openNewTabBtn);
+
+		// Assemble modal
+		modal.appendChild(header);
+		modal.appendChild(iframe);
+		modal.appendChild(footer);
+		overlay.appendChild(modal);
+
+		// Close handlers
+		const closeModal = () => {
+			overlay.remove();
+		};
+
+		closeBtn.addEventListener('click', closeModal);
+		overlay.addEventListener('click', (e) => {
+			if (e.target === overlay) {
+				closeModal();
+			}
+		});
+
+		// ESC key to close
+		const handleEsc = (e) => {
+			if (e.key === 'Escape') {
+				closeModal();
+				document.removeEventListener('keydown', handleEsc);
+			}
+		};
+		document.addEventListener('keydown', handleEsc);
+
+		// Add to DOM
+		document.body.appendChild(overlay);
 	}
 
 	/**
@@ -220,7 +299,7 @@ export class VoucherManager {
 				const canceledParcelId = response.data;
 
 				// Update hidden field
-				const parcelIdsField = document.getElementById('box_now_parcel_ids');
+				const parcelIdsField = document.getElementById(FormFields.VOUCHER_PARCEL_IDS);
 				if (parcelIdsField) {
 					const parcelIds = safeJsonParse(parcelIdsField.value, []);
 
@@ -233,10 +312,14 @@ export class VoucherManager {
 
 						parcelIdsField.value = JSON.stringify(parcelIds);
 
-						// Enable buttons if all vouchers canceled
-						if (parcelIds.length === 0) {
-							this.buttons.forEach(btn => btn && (btn.disabled = false));
+						// Update current count
+						const currentCountField = document.getElementById(FormFields.VOUCHER_CURRENT_COUNT);
+						if (currentCountField) {
+							currentCountField.value = parcelIds.length.toString();
 						}
+
+						// Update button state
+						this.#updateButtonState();
 					}
 				}
 
@@ -248,5 +331,137 @@ export class VoucherManager {
 		} catch (error) {
 			console.error('Error canceling voucher:', error);
 		}
+	}
+
+	/**
+	 * Attach cancel-all vouchers click listener
+	 * @private
+	 */
+	#attachCancelAllListener() {
+		const button = document.getElementById(FormFields.VOUCHER_CANCEL_ALL_BUTTON);
+
+		if (!button) {
+			return;
+		}
+
+		button.addEventListener('click', async (event) => {
+			event.preventDefault();
+			await this.#handleCancelAllVouchers(button);
+		});
+	}
+
+	/**
+	 * Handle cancel-all vouchers
+	 * @private
+	 * @param {HTMLElement} button - Cancel all button
+	 */
+	async #handleCancelAllVouchers(button) {
+		const orderId = button.getAttribute('data-order-id');
+		const parcelIdsField = document.getElementById(FormFields.VOUCHER_PARCEL_IDS);
+		const parcelIds = parcelIdsField ? safeJsonParse(parcelIdsField.value, []) : [];
+
+		if (!orderId || !Array.isArray(parcelIds) || parcelIds.length === 0) {
+			alert('No BoxNow vouchers were found for this order.');
+			return;
+		}
+
+		if (
+			!window.confirm(
+				`Cancel all ${parcelIds.length} BoxNow voucher(s) for this order? This cannot be undone.`
+			)
+		) {
+			return;
+		}
+
+		button.disabled = true;
+
+		try {
+			const response = await this.apiClient.post('cancel_all_vouchers', {
+				order_id: orderId,
+			});
+
+			if (response.success) {
+				const remainingParcelIds = response.data?.remaining_parcel_ids || [];
+				const failedCancellations = response.data?.failed_cancellations || [];
+
+				if (parcelIdsField) {
+					parcelIdsField.value = JSON.stringify(remainingParcelIds);
+				}
+
+				const currentCountField = document.getElementById(FormFields.VOUCHER_CURRENT_COUNT);
+				if (currentCountField) {
+					currentCountField.value = remainingParcelIds.length.toString();
+				}
+
+				this.#updateButtonState();
+
+				if (failedCancellations.length > 0) {
+					alert(
+						'Some BoxNow vouchers could not be cancelled: ' +
+							failedCancellations.join(', ')
+					);
+				}
+
+				location.reload();
+			} else {
+				alert('Error canceling all vouchers: ' + sanitizeErrorMessage(response.data));
+				button.disabled = false;
+			}
+		} catch (error) {
+			alert('Error canceling all vouchers: ' + sanitizeErrorMessage(error));
+			button.disabled = false;
+		}
+	}
+
+	/**
+	 * Update cancel-all button visibility
+	 * @private
+	 * @param {number} currentCount - Current voucher count
+	 */
+	#updateCancelAllButton(currentCount) {
+		const button = document.getElementById(FormFields.VOUCHER_CANCEL_ALL_BUTTON);
+
+		if (!button) {
+			return;
+		}
+
+		const hasVouchers = currentCount > 0;
+		button.style.display = hasVouchers ? '' : 'none';
+		button.disabled = !hasVouchers;
+	}
+
+	/**
+	 * Update button state based on current voucher count
+	 * @private
+	 */
+	#updateButtonState() {
+		const maxVouchers = parseInt(document.getElementById(FormFields.VOUCHER_MAX_VOUCHERS)?.value, 10) || 0;
+		const currentCount = parseInt(document.getElementById(FormFields.VOUCHER_CURRENT_COUNT)?.value, 10) || 0;
+		const quantityInput = document.getElementById(FormFields.VOUCHER_QUANTITY_INPUT);
+		const radios = document.querySelectorAll(`input[name="${FormFields.VOUCHER_COMPARTMENT_SIZE}"]`);
+
+		const remainingVouchers = maxVouchers - currentCount;
+		const canCreate = remainingVouchers > 0;
+
+		// Update cancel-all button
+		this.#updateCancelAllButton(currentCount);
+
+		// Update button state
+		if (this.button) {
+			this.button.disabled = !canCreate;
+		}
+
+		// Update quantity input max value
+		if (quantityInput) {
+			quantityInput.max = remainingVouchers.toString();
+			if (parseInt(quantityInput.value, 10) > remainingVouchers) {
+				quantityInput.value = remainingVouchers.toString();
+			}
+		}
+
+		// Enable/disable radio buttons
+		radios.forEach(radio => {
+			radio.disabled = !canCreate;
+		});
 	}
 }

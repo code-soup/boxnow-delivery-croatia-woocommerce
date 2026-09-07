@@ -25,7 +25,8 @@ class OrdersServiceProvider extends AbstractServiceProvider {
 				return new Order_Handler(
 					$container->get( 'hooker' ),
 					$container->get( 'delivery_service' ),
-					$container->get( 'parcel_service' )
+					$container->get( 'parcel_service' ),
+					$container->get( 'order_service' )
 				);
 			}
 		);

@@ -2,6 +2,7 @@
  * Admin order page entry point.
  * Uses OOP architecture - no jQuery.
  */
+import '@/styles/admin.scss';
 import { ApiClient } from '../checkout/core/api-client.js';
 import { VoucherManager } from './managers/voucher-manager.js';
 

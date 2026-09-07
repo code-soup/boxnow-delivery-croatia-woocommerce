@@ -76,11 +76,14 @@ class Authentication_Service {
 				return null;
 			}
 
+			$auth_url = 'https://' . $config['api_url'] . '/api/v1/auth-sessions';
+
 			$response = wp_remote_post(
-				'https://' . $config['api_url'] . '/api/v1/auth-sessions',
+				$auth_url,
 				array(
+					'method'  => 'POST',
 					'headers' => array( 'Content-Type' => 'application/json' ),
-					'body'    => wp_json_encode(
+					'body'    => json_encode(
 						array(
 							'grant_type'    => 'client_credentials',
 							'client_id'     => $config['client_id'],
@@ -91,12 +94,21 @@ class Authentication_Service {
 				)
 			);
 
+			if ( is_wp_error( $response ) ) {
+				error_log( 'BoxNow Auth Error: ' . $response->get_error_message() );
+				throw new API_Exception( 'Auth request failed: ' . $response->get_error_message() );
+			}
+
+			$response_code = wp_remote_retrieve_response_code( $response );
+			$response_body = wp_remote_retrieve_body( $response );
+
 			// Validate response using error handler
 			$this->error_handler->validate_http_response( $response, 200 );
 
-			$body = json_decode( wp_remote_retrieve_body( $response ), true );
+			$body = json_decode( $response_body, true );
 
 			if ( ! is_array( $body ) || ! isset( $body['access_token'] ) ) {
+				error_log( 'BoxNow Auth Error: Invalid token response structure' );
 				throw new API_Exception( 'Invalid token response structure' );
 			}
 
