@@ -7,6 +7,7 @@
 
 namespace CodeSoup\BoxNow\Services\API;
 
+use CodeSoup\BoxNow\Constants\Meta_Keys;
 use CodeSoup\BoxNow\Services\Settings_Service;
 
 defined( 'ABSPATH' ) || exit;
@@ -38,10 +39,15 @@ class Delivery_Request_Service {
 	public function create_delivery_request( $data ) {
 		$access_token = $this->get_access_token();
 		if ( ! $access_token ) {
+			error_log( '=== BoxNow API: No access token ===' );
 			return null;
 		}
 
 		$endpoint = $this->get_endpoint( '/api/v1/delivery-requests' );
+		$json_body = wp_json_encode( $data );
+
+		error_log( '=== BoxNow API Endpoint: ' . $endpoint . ' ===' );
+		error_log( '=== BoxNow API Request Payload: ' . $json_body . ' ===' );
 
 		$response = wp_remote_post(
 			$endpoint,
@@ -50,27 +56,31 @@ class Delivery_Request_Service {
 					'Authorization' => 'Bearer ' . $access_token,
 					'Content-Type'  => 'application/json',
 				),
-				'body'    => wp_json_encode( $data ),
+				'body'    => $json_body,
 				'timeout' => 20,
 			)
 		);
 
 		if ( is_wp_error( $response ) ) {
+			error_log( '=== BoxNow API Error: ' . $response->get_error_message() . ' ===' );
 			return null;
 		}
 
 		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( ! in_array( $response_code, array( 200, 201 ), true ) ) {
-			return null;
-		}
+		$response_body = wp_remote_retrieve_body( $response );
 
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
+		error_log( '=== BoxNow API Response Code: ' . $response_code . ' ===' );
+		error_log( '=== BoxNow API Response Body: ' . $response_body . ' ===' );
+
+		$data = json_decode( $response_body, true );
 
 		if ( ! is_array( $data ) ) {
+			error_log( '=== BoxNow API: Response is not valid JSON array ===' );
 			return null;
 		}
 
+		// Return the data even for error responses (400, etc.)
+		// The caller will check for 'code' and 'status' fields
 		return $data;
 	}
 
@@ -86,11 +96,15 @@ class Delivery_Request_Service {
 		$payment_method         = $order->get_payment_method();
 		$is_cod                 = 'cod' === $payment_method;
 
-		// Fetch all options once to avoid multiple DB queries
-		$voucher_option = get_option( 'boxnow_voucher_option', 'button' );
-		$voucher_email  = get_option( 'boxnow_voucher_email', '' );
-		$mobile_number  = get_option( 'boxnow_mobile_number', '' );
-		$allow_returns  = get_option( 'boxnow_allow_returns', 'no' );
+		// Get API config which includes warehouse_id
+		$api_config = $this->settings->get_api_config();
+
+		// Fetch voucher options
+		$voucher_option = get_option( \CodeSoup\BoxNow\Constants\Option_Keys::VOUCHER_OPTION, 'button' );
+		$voucher_email  = get_option( \CodeSoup\BoxNow\Constants\Option_Keys::VOUCHER_EMAIL, '' );
+		$mobile_number  = get_option( \CodeSoup\BoxNow\Constants\Option_Keys::MOBILE_NUMBER, '' );
+		$allow_returns  = get_option( \CodeSoup\BoxNow\Constants\Option_Keys::ALLOW_RETURNS, 'no' );
+		$warehouse_id   = $api_config['warehouse_id'];
 
 		$send_voucher_via_email = 'email' === $voucher_option;
 
@@ -119,15 +133,15 @@ class Delivery_Request_Service {
 			'origin'              => array(
 				'contactNumber' => $mobile_number,
 				'contactEmail'  => $voucher_email,
-				'locationId'    => $order->get_meta( '_selected_warehouse', true ),
+				'locationId'    => $warehouse_id,
 			),
 			'destination'         => array(
 				'contactName'   => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
 				'contactNumber' => $this->normalize_phone_number( $order->get_billing_phone() ),
 				'contactEmail'  => $order->get_billing_email(),
-				'locationId'    => $order->get_meta( '_boxnow_locker_id', true ),
+				'locationId'    => $order->get_meta( Meta_Keys::LOCKER_ID, true ),
 			),
-			'parcels'             => $items,
+			'items'               => $items,
 		);
 
 		return $data;

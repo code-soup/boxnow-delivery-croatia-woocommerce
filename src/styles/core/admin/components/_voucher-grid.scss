@@ -1,0 +1,66 @@
+/**
+ * Voucher Grid Layout
+ * Two-column responsive layout for voucher metabox
+ */
+
+.codesoup-boxnow-voucher-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+
+	@media (min-width: 760px) {
+		flex-direction: row;
+	}
+}
+
+.codesoup-boxnow-voucher-left {
+	flex: 1;
+
+	h3 {
+		margin: 24px 0 6px;
+	}
+
+	small {
+		color: #666;
+	}
+}
+
+.codesoup-boxnow-voucher-right {
+	flex: 1;
+
+	.codesoup-boxnow-voucher-right-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-bottom: 8px;
+	}
+
+	h3 {
+		margin: 0.5em 0;
+	}
+
+	.form-table {
+		width: auto;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		overflow: hidden;
+
+		th,
+		td {
+			padding: 8px 16px;
+		}
+
+		tbody tr {
+			border-bottom: 1px solid #e5e5e5;
+
+			&:nth-child(even) {
+				background-color: #f9f9f9;
+			}
+
+			&:last-child {
+				border-bottom: none;
+			}
+		}
+	}
+}

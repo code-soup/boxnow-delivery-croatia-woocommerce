@@ -1,0 +1,40 @@
+/**
+ * Locker Details Component
+ * Styles for the locker information table
+ */
+
+.boxnow-locker-details {
+	.form-table {
+		width: auto;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		overflow: hidden;
+
+		thead th {
+			padding: 12px 16px;
+			background-color: #f9f9f9;
+			border-bottom: 1px solid #ddd;
+			font-weight: 600;
+			text-align: left;
+		}
+
+		tbody {
+			th,
+			td {
+				padding: 8px 16px;
+			}
+
+			tr {
+				border-bottom: 1px solid #e5e5e5;
+
+				&:nth-child(even) {
+					background-color: #f9f9f9;
+				}
+
+				&:last-child {
+					border-bottom: none;
+				}
+			}
+		}
+	}
+}

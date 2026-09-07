@@ -7,6 +7,7 @@
 
 namespace CodeSoup\BoxNow\Services\Checkout;
 
+use CodeSoup\BoxNow\Constants\Option_Keys;
 use CodeSoup\BoxNow\Core\Hooker;
 use CodeSoup\BoxNow\Helpers\Locker_Data_Manager;
 use CodeSoup\BoxNow\Helpers\Order_Helper;
@@ -91,7 +92,7 @@ class Checkout_Handler {
 			// Save to order
 			foreach ( $locker_data as $key => $value ) {
 				if ( ! empty( $value ) ) {
-					$order->update_meta_data( '_boxnow_' . $key, $value );
+					$order->update_meta_data( '_codesoup_boxnow_' . $key, $value );
 				}
 			}
 			$order->save();
@@ -188,16 +189,16 @@ class Checkout_Handler {
 	 * Render locker selection button below ship-to-different-address checkbox.
 	 */
 	public function render_locker_button() {
-		$button_position = get_option( 'boxnow_button_position', 'inline' );
+		$button_position = get_option( Option_Keys::BUTTON_POSITION, 'inline' );
 
 		if ( 'inline' === $button_position || 'custom' === $button_position ) {
 			return;
 		}
 
-		$button_text          = get_option( 'boxnow_button_text', __( 'Pick a Locker', 'codesoup-woo-boxnow' ) );
-		$button_description   = get_option( 'boxnow_button_description', '' );
+		$button_text          = get_option( Option_Keys::BUTTON_TEXT, __( 'Pick a Locker', 'codesoup-woo-boxnow' ) );
+		$button_description   = get_option( Option_Keys::BUTTON_DESCRIPTION, '' );
 		$shipping_method_name = __( 'BoxNow Delivery by CodeSoup', 'codesoup-woo-boxnow' );
-		$button_color         = get_option( 'boxnow_button_color', '#6CD04E' );
+		$button_color         = get_option( Option_Keys::BUTTON_COLOR, '#6CD04E' );
 
 		// Use constants for CSS classes
 		$button_base_class     = \CodeSoup\BoxNow\Core\Constants::get_css_class( 'BUTTON_BASE' );

@@ -1,0 +1,60 @@
+/**
+ * Voucher Form Component
+ * Styles for the voucher creation form
+ */
+
+// Voucher form table
+.codesoup-boxnow-vouchers {
+	.form-table {
+		th,
+		td {
+			padding-top: 8px;
+			padding-bottom: 8px;
+		}
+	}
+}
+
+// Quantity input
+.codesoup-boxnow-voucher-quantity {
+	input[type="number"] {
+		width: 80px;
+	}
+}
+
+// Compartment size radio buttons
+.codesoup-boxnow-compartment-checkboxes {
+	margin-bottom: 12px;
+
+	label {
+		display: block;
+		margin: 8px 0 12px;
+		font-weight: normal;
+		cursor: pointer;
+
+		input[type="radio"] {
+			margin-right: 6px;
+			cursor: pointer;
+		}
+	}
+
+	.label {
+		display: block;
+	}
+
+	small {
+		display: block;
+		padding: 3px 0 0 2px;
+	}
+}
+
+// Size info text
+.codesoup-boxnow-size-info {
+	margin-left: 24px;
+	color: #666;
+}
+
+// Voucher limit text in title
+.codesoup-boxnow-voucher-limit {
+	font-weight: normal;
+	font-size: 13px;
+}

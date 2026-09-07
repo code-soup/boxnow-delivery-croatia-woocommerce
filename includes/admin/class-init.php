@@ -27,20 +27,16 @@ class Init {
 	 */
 	public function __construct() {
 		// Hooks registered later to avoid circular dependency
-		error_log( print_r('__construct', true) );
 	}
 
 	/**
 	 * Initialize and register hooks.
 	 */
 	public function init(): void {
-		error_log( print_r('init', true) );
-		$hooker = plugin()->get( 'hooker' );
-		$hooker->add_actions(
-			array(
-				array( 'admin_enqueue_scripts', $this ),
-			)
-		);
+		// TEMPORARY FIX: Register directly with WordPress instead of via Hooker
+		// The Hooker pattern delays registration until plugin()->run() completes,
+		// but admin_enqueue_scripts may fire before that
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 10, 0 );
 	}
 
 	/**
@@ -48,22 +44,15 @@ class Init {
 	 */
 	public function admin_enqueue_scripts(): void {
 
-		error_log( '=== BOXNOW admin_enqueue_scripts CALLED ===' );
-
 		// Only enqueue on order edit screen.
 		$screen = get_current_screen();
 
 		// Support both traditional and HPOS order screens
 		$valid_screens = array( 'shop_order', 'woocommerce_page_wc-orders' );
 
-		error_log( '=== Screen ID: ' . ( $screen ? $screen->id : 'NULL' ) . ' ===' );
-		error_log( '=== Is order screen: ' . ( $screen && in_array( $screen->id, $valid_screens, true ) ? 'YES' : 'NO' ) . ' ===' );
-
 		if ( ! $screen || ! in_array( $screen->id, $valid_screens, true ) ) {
 			return;
 		}
-
-		error_log( '=== PASSED SCREEN CHECK - WILL ENQUEUE ===' );
 
 
 
@@ -97,11 +86,18 @@ class Init {
 			$dependencies[] = 'csbxwoo-admin-vendor';
 		}
 
+		// Admin order styles.
+		if ( $assets_handler->asset_exists( 'admin-order.css' ) ) {
+			wp_enqueue_style(
+				'csbxwoo-admin-order',
+				$assets_handler->get_asset_url( 'admin-order.css' ),
+				array(),
+				$plugin_version
+			);
+		}
+
 		// Admin order script.
 		if ( $assets_handler->asset_exists( 'admin-order.js' ) ) {
-
-			error_log( '=== admin-order.js EXISTS - ENQUEUING ===' );
-
 			wp_enqueue_script(
 				'csbxwoo-admin-order',
 				$assets_handler->get_asset_url( 'admin-order.js' ),

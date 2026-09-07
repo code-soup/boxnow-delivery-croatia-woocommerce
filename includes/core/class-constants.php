@@ -78,7 +78,7 @@ class Constants {
 		'EMBEDDED_MAP' => 'boxnow-delivery-embedded-map',
 
 		// Hidden Inputs
-		'LOCKER_ID_INPUT'   => '_boxnow_locker_id',
+		'LOCKER_ID_INPUT'   => '_codesoup_boxnow_locker_id',
 		'LOCKER_DATA_INPUT' => 'boxnow-selected-locker-input',
 	);
 

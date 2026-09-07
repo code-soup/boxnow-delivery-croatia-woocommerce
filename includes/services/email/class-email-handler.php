@@ -7,6 +7,7 @@
 
 namespace CodeSoup\BoxNow\Services\Email;
 
+use CodeSoup\BoxNow\Constants\Meta_Keys;
 use CodeSoup\BoxNow\Core\Hooker;
 use CodeSoup\BoxNow\Helpers\Order_Helper;
 
@@ -55,13 +56,13 @@ class Email_Handler {
 			return;
 		}
 
-		$locker_id      = $order->get_meta( '_boxnow_locker_id' );
-		$locker_name    = $order->get_meta( '_boxnow_locker_name' );
-		$locker_address = $order->get_meta( '_boxnow_locker_address' );
-		$locker_city    = $order->get_meta( '_boxnow_locker_city' );
-		$locker_postcode = $order->get_meta( '_boxnow_locker_postcode' );
-		$locker_note    = $order->get_meta( '_boxnow_locker_note' );
-		$locker_image   = $order->get_meta( '_boxnow_locker_image' );
+		$locker_id      = $order->get_meta( Meta_Keys::LOCKER_ID );
+		$locker_name    = $order->get_meta( Meta_Keys::LOCKER_NAME );
+		$locker_address = $order->get_meta( Meta_Keys::LOCKER_ADDRESS );
+		$locker_city    = $order->get_meta( Meta_Keys::LOCKER_CITY );
+		$locker_postcode = $order->get_meta( Meta_Keys::LOCKER_POSTCODE );
+		$locker_note    = $order->get_meta( Meta_Keys::LOCKER_NOTE );
+		$locker_image   = $order->get_meta( Meta_Keys::LOCKER_IMAGE );
 
 		if ( ! $locker_id ) {
 			return;
@@ -189,13 +190,13 @@ class Email_Handler {
 			return;
 		}
 
-		$locker_id = $order->get_meta( '_boxnow_locker_id' );
-		$locker_name = $order->get_meta( '_boxnow_locker_name' );
-		$locker_address = $order->get_meta( '_boxnow_locker_address' );
-		$locker_city = $order->get_meta( '_boxnow_locker_city' );
-		$locker_postcode = $order->get_meta( '_boxnow_locker_postcode' );
-		$locker_note = $order->get_meta( '_boxnow_locker_note' );
-		$locker_image = $order->get_meta( '_boxnow_locker_image' );
+		$locker_id = $order->get_meta( Meta_Keys::LOCKER_ID );
+		$locker_name = $order->get_meta( Meta_Keys::LOCKER_NAME );
+		$locker_address = $order->get_meta( Meta_Keys::LOCKER_ADDRESS );
+		$locker_city = $order->get_meta( Meta_Keys::LOCKER_CITY );
+		$locker_postcode = $order->get_meta( Meta_Keys::LOCKER_POSTCODE );
+		$locker_note = $order->get_meta( Meta_Keys::LOCKER_NOTE );
+		$locker_image = $order->get_meta( Meta_Keys::LOCKER_IMAGE );
 
 		if ( ! $locker_id ) {
 			return;
@@ -218,16 +219,16 @@ class Email_Handler {
 			return;
 		}
 
-		$locker_id = $order->get_meta( '_boxnow_locker_id' );
+		$locker_id = $order->get_meta( Meta_Keys::LOCKER_ID );
 		if ( ! $locker_id ) {
 			return;
 		}
 
-		$locker_name = $order->get_meta( '_boxnow_locker_name' );
-		$locker_address = $order->get_meta( '_boxnow_locker_address' );
-		$locker_city = $order->get_meta( '_boxnow_locker_city' );
-		$locker_postcode = $order->get_meta( '_boxnow_locker_postcode' );
-		$locker_country = $order->get_meta( '_boxnow_locker_country' );
+		$locker_name = $order->get_meta( Meta_Keys::LOCKER_NAME );
+		$locker_address = $order->get_meta( Meta_Keys::LOCKER_ADDRESS );
+		$locker_city = $order->get_meta( Meta_Keys::LOCKER_CITY );
+		$locker_postcode = $order->get_meta( Meta_Keys::LOCKER_POSTCODE );
+		$locker_country = $order->get_meta( Meta_Keys::LOCKER_COUNTRY );
 
 		?>
 		<section class="woocommerce-columns woocommerce-columns--2 woocommerce-columns--addresses col2-set addresses" style="margin-top: 20px;">
