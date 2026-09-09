@@ -60,6 +60,7 @@ export class VoucherManager {
 			// Get selected compartment size (radio button)
 			const selectedRadio = document.querySelector(`input[name="${FormFields.VOUCHER_COMPARTMENT_SIZE}"]:checked`);
 			const compartmentSize = selectedRadio ? parseInt(selectedRadio.value, 10) : null;
+			const showRecipientInformation = document.getElementById(FormFields.VOUCHER_SHOW_RECIPIENT_INFO)?.checked ?? true;
 
 			// Validation
 			if (!orderId || !voucherQuantity) {
@@ -85,6 +86,7 @@ export class VoucherManager {
 					order_id: orderId,
 					voucher_quantity: voucherQuantity,
 					compartment_size: compartmentSize,
+					show_recipient_information: showRecipientInformation ? '1' : '0',
 				});
 
 				if (response.success && response.data?.new_parcel_ids && response.data?.html) {
@@ -439,6 +441,7 @@ export class VoucherManager {
 		const currentCount = parseInt(document.getElementById(FormFields.VOUCHER_CURRENT_COUNT)?.value, 10) || 0;
 		const quantityInput = document.getElementById(FormFields.VOUCHER_QUANTITY_INPUT);
 		const radios = document.querySelectorAll(`input[name="${FormFields.VOUCHER_COMPARTMENT_SIZE}"]`);
+		const showRecipientCheckbox = document.getElementById(FormFields.VOUCHER_SHOW_RECIPIENT_INFO);
 
 		const remainingVouchers = maxVouchers - currentCount;
 		const canCreate = remainingVouchers > 0;
@@ -463,5 +466,9 @@ export class VoucherManager {
 		radios.forEach(radio => {
 			radio.disabled = !canCreate;
 		});
+
+		if (showRecipientCheckbox) {
+			showRecipientCheckbox.disabled = !canCreate;
+		}
 	}
 }

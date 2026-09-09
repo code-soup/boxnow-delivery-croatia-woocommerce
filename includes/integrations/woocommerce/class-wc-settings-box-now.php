@@ -387,13 +387,6 @@ class WC_Settings_BoxNow extends \WC_Settings_Page {
 				'description' => __( 'Allow customers to return items via Box Now lockers', 'codesoup-woo-boxnow' ),
 			),
 			array(
-				'title'   => __( 'Show on Thank You Page', 'codesoup-woo-boxnow' ),
-				'id'      => Option_Keys::THANKYOU_PAGE_DISPLAY,
-				'type'    => 'checkbox',
-				'default' => 'yes',
-				'desc_tip' => __( 'Display voucher information on the order confirmation page.', 'codesoup-woo-boxnow' ),
-			),
-			array(
 				'type' => 'sectionend',
 				'id'   => 'boxnow_voucher_settings',
 			),

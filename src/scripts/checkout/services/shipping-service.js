@@ -22,25 +22,18 @@ export class ShippingService {
 	isBoxNowSelected() {
 		// Check radio input
 		const radio = document.querySelector(Selectors.SHIPPING_METHOD_RADIO_CHECKED);
-		console.log('[BOXNOW DEBUG] isBoxNowSelected() - radio:', radio);
-		console.log('[BOXNOW DEBUG] isBoxNowSelected() - radio value:', radio?.value);
 
 		if (radio && radio.value.includes(ShippingMethods.BOXNOW_ID)) {
-			console.log('[BOXNOW DEBUG] isBoxNowSelected() - MATCHED radio!');
 			return true;
 		}
 
 		// Fallback: check hidden input (some themes/checkout flows)
 		const hidden = document.querySelector(Selectors.SHIPPING_METHOD_HIDDEN);
-		console.log('[BOXNOW DEBUG] isBoxNowSelected() - hidden:', hidden);
-		console.log('[BOXNOW DEBUG] isBoxNowSelected() - hidden value:', hidden?.value);
 
 		if (hidden && hidden.value.includes(ShippingMethods.BOXNOW_ID)) {
-			console.log('[BOXNOW DEBUG] isBoxNowSelected() - MATCHED hidden!');
 			return true;
 		}
 
-		console.log('[BOXNOW DEBUG] isBoxNowSelected() - NO MATCH, returning false');
 		return false;
 	}
 

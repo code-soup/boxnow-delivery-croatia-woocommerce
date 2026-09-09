@@ -26,47 +26,32 @@ export class CheckoutClassic extends BaseCheckout {
 	 * Initialize checkout
 	 */
 	init() {
-		console.log('[BOXNOW DEBUG] init() called, displayMode:', this.config.displayMode);
-
-		// Skip init if currently populating address
 		if (this.state.get('isPopulatingAddress')) {
-			console.log('[BOXNOW DEBUG] Skipping init - currently populating address');
 			return;
 		}
 
-		// Skip init if currently selecting shipping to prevent loops
 		if (this.state.get('isSelectingShipping')) {
-			console.log('[BOXNOW DEBUG] Skipping init - currently selecting shipping');
 			return;
 		}
 
-		// Auto-select BoxNow if locker data exists in localStorage but BoxNow isn't selected
 		const hasLockerData = this.storage.hasData();
 		const isBoxNowSelected = this.shippingService.isBoxNowSelected();
 		const isBoxNowAvailable = this.shippingService.isBoxNowAvailable();
 
 		if (hasLockerData && !isBoxNowSelected && isBoxNowAvailable && !this.state.get('hasAutoSelectedBoxNow')) {
-			console.log('[BOXNOW DEBUG] Locker data exists in storage, auto-selecting BoxNow shipping');
 			this.state.set('hasAutoSelectedBoxNow', true);
 			this.shippingService.selectBoxNow();
-			return; // Exit early, will re-init after shipping selection
+			return;
 		}
 
-		// Render UI based on display mode
 		if (this.config.displayMode === 'popup') {
-			console.log('[BOXNOW DEBUG] Display mode is popup, calling buttonManager.render() and updateVisibility()');
 			this.buttonManager.render();
-			console.log('[BOXNOW DEBUG] About to call updateVisibility()');
 			this.buttonManager.updateVisibility();
-			console.log('[BOXNOW DEBUG] updateVisibility() completed');
 		} else if (this.config.displayMode === 'embedded') {
-			console.log('[BOXNOW DEBUG] Display mode is embedded, calling embeddedManager.init()');
 			this.embeddedManager.init();
 		}
 
-		// Restore locker details if BoxNow is selected
 		if (this.shippingService.isBoxNowSelected()) {
-			console.log('[BOXNOW DEBUG] BoxNow is selected, restoring locker from storage');
 			this.showSelectedLockerFromStorage();
 		}
 	}
@@ -164,18 +149,10 @@ export class CheckoutClassic extends BaseCheckout {
 	setupEventListeners() {
 		// Widget open request (from button clicks)
 		this.eventBus.on('widget:open-requested', () => {
-			console.log('[BOXNOW DEBUG] widget:open-requested event received in orchestrator');
-			console.log('[BOXNOW DEBUG] displayMode:', this.config.displayMode);
-			console.log('[BOXNOW DEBUG] popupManager:', this.popupManager);
-
 			logger.log('widget:open-requested event received, displayMode:', this.config.displayMode);
 			if (this.config.displayMode === 'popup') {
-				console.log('[BOXNOW DEBUG] Calling popupManager.open()');
 				logger.log('Opening popup...');
 				this.popupManager.open();
-				console.log('[BOXNOW DEBUG] popupManager.open() called');
-			} else {
-				console.log('[BOXNOW DEBUG] Display mode is not popup, popup not opened');
 			}
 		});
 
@@ -204,7 +181,6 @@ export class CheckoutClassic extends BaseCheckout {
 				// If switching TO BoxNow and we have locker data, restore it
 				if (selectedMethod && selectedMethod.includes(ShippingMethods.BOXNOW_ID)) {
 					if (this.storage.hasData()) {
-						console.log('[BOXNOW DEBUG] Switched to BoxNow, restoring locker from storage');
 						this.showSelectedLockerFromStorage();
 					}
 				}

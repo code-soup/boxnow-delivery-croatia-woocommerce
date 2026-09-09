@@ -95,7 +95,6 @@ class Authentication_Service {
 			);
 
 			if ( is_wp_error( $response ) ) {
-				error_log( 'BoxNow Auth Error: ' . $response->get_error_message() );
 				throw new API_Exception( 'Auth request failed: ' . $response->get_error_message() );
 			}
 
@@ -108,7 +107,6 @@ class Authentication_Service {
 			$body = json_decode( $response_body, true );
 
 			if ( ! is_array( $body ) || ! isset( $body['access_token'] ) ) {
-				error_log( 'BoxNow Auth Error: Invalid token response structure' );
 				throw new API_Exception( 'Invalid token response structure' );
 			}
 

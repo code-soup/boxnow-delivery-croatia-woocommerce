@@ -133,6 +133,27 @@ $compartment_sizes = array(
 			</tr>
 
 			<tr>
+				<th scope="row">
+					<label for="<?php echo esc_attr( Form_Fields::VOUCHER_SHOW_RECIPIENT_INFO ); ?>">
+						<?php esc_html_e( 'Label info', 'codesoup-woo-boxnow' ); ?>
+					</label>
+				</th>
+				<td>
+					<label>
+						<input
+							type="checkbox"
+							id="<?php echo esc_attr( Form_Fields::VOUCHER_SHOW_RECIPIENT_INFO ); ?>"
+							name="<?php echo esc_attr( Form_Fields::VOUCHER_SHOW_RECIPIENT_INFO ); ?>"
+							value="1"
+							<?php checked( true ); ?>
+							<?php disabled( $is_disabled, true ); ?>
+						>
+						<?php esc_html_e( 'Print recipient phone and email on the shipping label.' ); ?>
+					</label>
+				</td>
+			</tr>
+
+			<tr>
 				<th scope="row">&nbsp;</th>
 				<td colspan="2">
 					<?php

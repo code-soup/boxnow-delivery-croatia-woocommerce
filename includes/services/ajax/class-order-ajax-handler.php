@@ -108,6 +108,7 @@ class Order_AJAX_Handler {
 		$order_id          = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
 		$voucher_quantity  = isset( $_POST['voucher_quantity'] ) ? absint( $_POST['voucher_quantity'] ) : 1;
 		$compartment_size  = isset( $_POST['compartment_size'] ) ? absint( $_POST['compartment_size'] ) : null;
+		$show_recipient    = $this->get_posted_bool( 'show_recipient_information', true );
 
 		if ( ! $order_id ) {
 			wp_send_json_error( __( 'Invalid order ID.', 'codesoup-woo-boxnow' ), 400 );
@@ -125,7 +126,6 @@ class Order_AJAX_Handler {
 
 		// Check if parcels already exist
 		$existing_parcel_ids = $order->get_meta( Meta_Keys::PARCEL_IDS, true );
-		error_log( '=== Before create - Existing Parcel IDs: ' . wp_json_encode( $existing_parcel_ids ) . ' ===' );
 
 		if ( ! empty( $existing_parcel_ids ) && is_array( $existing_parcel_ids ) ) {
 			$existing_count = count( $existing_parcel_ids );
@@ -156,7 +156,7 @@ class Order_AJAX_Handler {
 		}
 
 		try {
-			$data = $this->delivery_service->prepare_delivery_data( $order, $voucher_quantity, $compartment_size );
+			$data = $this->delivery_service->prepare_delivery_data( $order, $voucher_quantity, $compartment_size, $show_recipient );
 
 			$response = $this->delivery_service->create_delivery_request( $data );
 
@@ -216,20 +216,14 @@ class Order_AJAX_Handler {
 			$parcel_items_html = '';
 			$template_order_id = $order_id; // Store order_id before loop
 
-			error_log( '=== Generating HTML for parcel IDs: ' . wp_json_encode( $parcel_ids ) . ' ===' );
-			error_log( '=== Template Order ID: ' . $template_order_id . ' ===' );
-
 			foreach ( $parcel_ids as $parcel_id ) {
 				ob_start();
 				// Set variables expected by parcel-link-item.php template
 				$order_id = $template_order_id;
-				error_log( '=== Including template for parcel_id: ' . $parcel_id . ', order_id: ' . $order_id . ' ===' );
 				include plugin()->get_config( 'PLUGIN_BASE_PATH' ) . 'includes/admin/views/parcel-link-item.php';
 				$parcel_items_html .= ob_get_clean();
 			}
 			$order_id = $template_order_id; // Restore after loop
-
-			error_log( '=== Generated HTML length: ' . strlen( $parcel_items_html ) . ' bytes ===' );
 
 			// Return just the parcel items HTML (column will be shown via JS)
 			$table_html = $parcel_items_html;
@@ -440,5 +434,20 @@ class Order_AJAX_Handler {
 		}
 
 		return (bool) wp_verify_nonce( $nonce, self::NONCE_ACTION );
+	}
+
+	/**
+	 * Read a boolean flag from the current POST request.
+	 *
+	 * @param string $key     POST key.
+	 * @param bool   $default Default when the key is missing.
+	 * @return bool
+	 */
+	private function get_posted_bool( $key, $default = true ): bool {
+		if ( ! isset( $_POST[ $key ] ) ) {
+			return $default;
+		}
+
+		return filter_var( wp_unslash( $_POST[ $key ] ), FILTER_VALIDATE_BOOLEAN );
 	}
 }

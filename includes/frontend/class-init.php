@@ -116,14 +116,6 @@ class Init {
 				'boxNowDeliverySettings',
 				$settings
 			);
-
-			// Add inline debug script
-			wp_add_inline_script(
-				'csbxwoo-checkout',
-				'console.log("[BoxNow] Script file loaded from: ' . esc_js( $script_url ) . '");',
-				'before'
-			);
-		} else {
 		}
 
 		// Checkout blocks script.

@@ -172,11 +172,7 @@ export class CheckoutBlocks {
 	setupEventListeners() {
 		// Widget open request
 		this.eventBus.on('widget:open-requested', () => {
-			console.log('[BOXNOW DEBUG] widget:open-requested event received in blocks orchestrator');
-			console.log('[BOXNOW DEBUG] popupManager:', this.popupManager);
-			console.log('[BOXNOW DEBUG] Calling popupManager.open()');
 			this.popupManager.open();
-			console.log('[BOXNOW DEBUG] popupManager.open() called');
 		});
 
 		// Clear locker request
