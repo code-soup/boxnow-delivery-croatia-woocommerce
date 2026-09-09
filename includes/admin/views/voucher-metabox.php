@@ -96,12 +96,14 @@ $compartment_sizes = array(
 				</th>
 				<td>
 					<?php
+					// No name attribute: the value is sent over AJAX, and an unnamed
+					// disabled field is skipped by the order form's HTML5 validation.
 					printf(
-						'<input type="number" id="%s" name="%s" min="1" max="%s" value="1" class="%s" />',
+						'<input type="number" id="%s" min="1" max="%s" value="1" class="%s" %s/>',
 						esc_attr( Form_Fields::VOUCHER_QUANTITY_INPUT ),
-						esc_attr( Form_Fields::VOUCHER_QUANTITY_INPUT ),
-						esc_attr( $max_vouchers ),
-						esc_attr( Form_Fields::VOUCHER_QUANTITY_CLASS )
+						esc_attr( max( 1, $max_vouchers ) ),
+						esc_attr( Form_Fields::VOUCHER_QUANTITY_CLASS ),
+						disabled( $is_disabled, true, false )
 					);
 					?>
 				</td>
