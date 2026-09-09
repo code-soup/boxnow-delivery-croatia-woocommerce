@@ -2,7 +2,7 @@
  * Manages locker data persistence in localStorage and WooCommerce session.
  */
 import { safeJsonParse, isValidLockerData } from '../utils/validation-helpers.js';
-import { StorageKeys, AjaxActions } from './constants.js';
+import { StorageKeys } from './constants.js';
 
 export class LockerStorage {
 
@@ -70,7 +70,6 @@ export class LockerStorage {
 	 * @returns {Promise<Object>} API response
 	 */
 	async saveToSession(data) {
-		console.log('[BOXNOW DEBUG] saveToSession() - skipping (using POST data now)');
 		// Session saving is no longer needed since we use POST data directly
 		// Hidden form fields are populated by details-renderer.js
 		return { success: true };
@@ -82,8 +81,6 @@ export class LockerStorage {
 	 */
 	async clearSession() {
 		// Session clearing is no longer needed since we use POST data directly
-		// Just return success without making AJAX call
-		console.log('[BOXNOW DEBUG] clearSession() - skipping (using POST data now)');
 		return { success: true };
 	}
 
@@ -93,17 +90,8 @@ export class LockerStorage {
 	 * @returns {Promise<Object>} Session save response
 	 */
 	async saveAndSync(data) {
-		console.log('[BOXNOW DEBUG] saveAndSync() called with data:', data);
-
-		// Save to localStorage first (synchronous)
 		this.save(data);
-		console.log('[BOXNOW DEBUG] Saved to localStorage');
-
-		// Then sync to session (asynchronous)
-		const result = await this.saveToSession(data);
-		console.log('[BOXNOW DEBUG] saveAndSync() result:', result);
-
-		return result;
+		return this.saveToSession(data);
 	}
 
 	/**
@@ -111,17 +99,8 @@ export class LockerStorage {
 	 * @returns {Promise<Object>} Session clear response
 	 */
 	async clearAndSync() {
-		console.log('[BOXNOW DEBUG] clearAndSync() called');
-
-		// Clear localStorage first (synchronous)
 		this.clear();
-		console.log('[BOXNOW DEBUG] localStorage cleared');
-
-		// Then clear session (asynchronous)
-		const result = await this.clearSession();
-		console.log('[BOXNOW DEBUG] Session clear result:', result);
-
-		return result;
+		return this.clearSession();
 	}
 
 	/**

@@ -14,6 +14,7 @@ export const VOUCHER_MAX_VOUCHERS = 'codesoup_boxnow_max_vouchers';
 export const VOUCHER_CURRENT_COUNT = 'codesoup_boxnow_current_count';
 export const VOUCHER_QUANTITY_INPUT = 'codesoup_boxnow_voucher_code';
 export const VOUCHER_COMPARTMENT_SIZE = 'codesoup_boxnow_compartment_size';
+export const VOUCHER_SHOW_RECIPIENT_INFO = 'codesoup_boxnow_show_recipient_information';
 export const VOUCHER_CREATE_BUTTON = 'codesoup_boxnow_create_voucher';
 export const VOUCHER_CANCEL_ALL_BUTTON = 'codesoup_boxnow_cancel_all_vouchers';
 export const VOUCHER_LINK_CONTAINER = 'codesoup_boxnow_voucher_link';

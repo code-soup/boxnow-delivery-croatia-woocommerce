@@ -57,6 +57,17 @@ Configure locker selection widget display options.
 - **Embedded** - Displays locker map inline on checkout page
 - **Custom** - Manual placement via shortcode `[codesoup_boxnow_pick_locker]` - full control over map positioning
 
+### Voucher Settings
+
+Navigate to WooCommerce → Settings → BoxNow → Voucher Settings
+
+- **Voucher Option**
+  - **Button** (default) — Admin creates shipping labels (vouchers) from the order edit screen
+  - **Email** — A voucher is created automatically when the order is marked completed; BoxNow can email the PDF if notify-on-accepted is enabled
+- **Voucher Email** — Origin contact email and optional notify-on-accepted address
+- **Mobile Number** — Origin warehouse contact phone (international format)
+- **Allow Returns** — Sets `allowReturn` on the delivery request
+
 ## Screenshots
 
 ### API Settings
@@ -86,11 +97,33 @@ Customize locker selection button and map display options.
 - Search by address or postcode
 - Store selected locker with order
 
+### Vouchers
+
+BoxNow shipping labels (vouchers) are created via `POST /api/v1/delivery-requests`. Each item in the request is one parcel.
+
+**Button mode (order edit screen):**
+
+- Metabox on BoxNow orders: locker details, voucher quantity, compartment size (S/M/L)
+- **Phone and email on label** — when checked, sends `showRecipientInformation: true` so recipient phone and email print on the PDF (the name is always printed)
+- Accessible locker compartment is always sent as `easyAccess: true`
+- Print label PDF in a modal, cancel one voucher, or cancel all
+- Quantity is limited by the number of order line items
+
+**Email mode:**
+
+- One delivery request is created when the order completes, if a voucher does not already exist
+
+**Payment mode on the request:**
+
+- WooCommerce Cash on Delivery (`cod`) → BoxNow `paymentMode: "cod"` with the order total as `amountToBeCollected`
+- All other gateways → `paymentMode: "prepaid"` with collected amount `0`
+
 ### Order Processing
 
-- Automatic parcel creation when order completes
-- Parcel tracking via order meta
-- Store locker details with order
+- Automatic voucher creation when the order completes (email mode)
+- Manual voucher creation from the order screen (button mode)
+- Parcel IDs stored on the order
+- Locker details stored on the order
 
 ### API Integration
 
@@ -105,18 +138,20 @@ Plugin stores following meta data on orders:
 
 **Locker Information:**
 
-- `_boxnow_locker_id` - Selected locker ID
-- `_boxnow_locker_name` - Locker name
-- `_boxnow_locker_address` - Locker street address
-- `_boxnow_locker_city` - Locker city
-- `_boxnow_locker_postcode` - Locker postal code
-- `_boxnow_locker_country` - Locker country code
+- `_codesoup_boxnow_locker_id` - Selected locker ID
+- `_codesoup_boxnow_locker_name` - Locker name
+- `_codesoup_boxnow_locker_address` - Locker street address
+- `_codesoup_boxnow_locker_city` - Locker city
+- `_codesoup_boxnow_locker_postcode` - Locker postal code
+- `_codesoup_boxnow_locker_country` - Locker country code
 
-**Parcel Information:**
+**Parcel / voucher:**
 
-- `_boxnow_parcel_id` - BoxNow parcel tracking ID
-- `_boxnow_parcel_ids` - Array of parcel IDs (for multiple parcels)
-- `_selected_warehouse` - Origin warehouse ID
+- `_codesoup_boxnow_parcel_id` - Single parcel ID (automatic / email mode)
+- `_codesoup_boxnow_parcel_ids` - Array of parcel IDs (manual / button mode)
+- `_codesoup_boxnow_voucher_created` - Flag for automatic creation
+- `_codesoup_boxnow_vouchers_created` - Flag for manual creation
+- `_codesoup_boxnow_warehouse` - Origin warehouse ID
 
 ## Filters
 

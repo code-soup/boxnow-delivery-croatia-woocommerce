@@ -50,11 +50,10 @@ final class Option_Keys {
 	/**
 	 * Voucher Settings
 	 */
-	const VOUCHER_OPTION        = 'codesoup_boxnow_voucher_option';
-	const VOUCHER_EMAIL         = 'codesoup_boxnow_voucher_email';
-	const MOBILE_NUMBER         = 'codesoup_boxnow_mobile_number';
-	const ALLOW_RETURNS         = 'codesoup_boxnow_allow_returns';
-	const THANKYOU_PAGE_DISPLAY = 'codesoup_boxnow_thankyou_page';
+	const VOUCHER_OPTION = 'codesoup_boxnow_voucher_option';
+	const VOUCHER_EMAIL  = 'codesoup_boxnow_voucher_email';
+	const MOBILE_NUMBER  = 'codesoup_boxnow_mobile_number';
+	const ALLOW_RETURNS  = 'codesoup_boxnow_allow_returns';
 
 	/**
 	 * Prevent instantiation.

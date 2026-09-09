@@ -47,9 +47,6 @@ class Parcel_Service {
 
 			$endpoint = $this->get_endpoint( '/api/v1/parcels/' . rawurlencode( (string) $parcel_id ) . ':cancel' );
 
-			error_log( '=== Cancel Parcel API Endpoint: ' . $endpoint . ' ===' );
-			error_log( '=== Cancel Parcel ID: ' . $parcel_id . ' ===' );
-
 			$response = wp_remote_post(
 				$endpoint,
 				array(
@@ -63,15 +60,10 @@ class Parcel_Service {
 			);
 
 			if ( is_wp_error( $response ) ) {
-				error_log( '=== Cancel Parcel WP Error: ' . $response->get_error_message() . ' ===' );
 				throw API_Exception::from_wp_error( $response );
 			}
 
 			$response_code = wp_remote_retrieve_response_code( $response );
-			$response_body = wp_remote_retrieve_body( $response );
-
-			error_log( '=== Cancel Parcel Response Code: ' . $response_code . ' ===' );
-			error_log( '=== Cancel Parcel Response Body: ' . $response_body . ' ===' );
 
 			// Accept both 200 and 204
 			if ( in_array( $response_code, array( 200, 204 ), true ) ) {

@@ -3,8 +3,8 @@
  * Main entry point for metabox components
  */
 
-@import 'components/locker-details';
-@import 'components/voucher-form';
-@import 'components/voucher-grid';
-@import 'components/voucher-list';
-@import 'components/pdf-modal';
+@use 'components/locker-details';
+@use 'components/voucher-form';
+@use 'components/voucher-grid';
+@use 'components/voucher-list';
+@use 'components/pdf-modal';
