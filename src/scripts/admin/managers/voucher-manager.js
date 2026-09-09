@@ -454,11 +454,18 @@ export class VoucherManager {
 			this.button.disabled = !canCreate;
 		}
 
-		// Update quantity input max value
+		// Update quantity input max value. The field lives inside the order edit
+		// form, so it must never be left in an invalid state (0 with min="1") or
+		// the browser blocks saving the order.
 		if (quantityInput) {
-			quantityInput.max = remainingVouchers.toString();
-			if (parseInt(quantityInput.value, 10) > remainingVouchers) {
-				quantityInput.value = remainingVouchers.toString();
+			quantityInput.disabled = !canCreate;
+
+			if (canCreate) {
+				quantityInput.max = remainingVouchers.toString();
+
+				if (parseInt(quantityInput.value, 10) > remainingVouchers) {
+					quantityInput.value = remainingVouchers.toString();
+				}
 			}
 		}
 
