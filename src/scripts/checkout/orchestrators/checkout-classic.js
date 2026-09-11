@@ -122,24 +122,31 @@ export class CheckoutClassic extends BaseCheckout {
 	 * Clear locker selection
 	 */
 	clearLocker() {
-		// Clear storage
-		this.storage.clearAndSync();
+		// Restoring the address dispatches change events that this orchestrator
+		// listens to, so guard against re-entering a clear that is already running.
+		if (this.state.get('isClearingLocker')) {
+			return;
+		}
 
-		// Clear state
-		this.state.clearLocker();
+		this.state.set('isClearingLocker', true);
 
-		// Clear UI
-		this.detailsRenderer.clear();
+		try {
+			// Clear storage
+			this.storage.clearAndSync();
 
-		// Restore original address
-		this.addressService.restore();
+			// Clear state
+			this.state.clearLocker();
 
-		// Emit event
-		this.eventBus.emit(Events.LOCKER_CLEARED);
+			// Clear UI
+			this.detailsRenderer.clear();
 
-		// Open widget to select new locker
-		if (this.config.displayMode === 'popup') {
-			this.popupManager.open();
+			// Restore original address
+			this.addressService.restore();
+
+			// Emit event
+			this.eventBus.emit(Events.LOCKER_CLEARED);
+		} finally {
+			this.state.set('isClearingLocker', false);
 		}
 	}
 

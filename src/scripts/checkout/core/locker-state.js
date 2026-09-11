@@ -11,6 +11,7 @@ export class LockerState {
 		lockerSelected: false,
 		isSelectingShipping: false,
 		isPopulatingAddress: false,
+		isClearingLocker: false,
 		selectedLocker: null,
 		originalAddress: null,
 	};
@@ -105,6 +106,7 @@ export class LockerState {
 			lockerSelected: false,
 			isSelectingShipping: false,
 			isPopulatingAddress: false,
+			isClearingLocker: false,
 			selectedLocker: null,
 			originalAddress: null,
 		});

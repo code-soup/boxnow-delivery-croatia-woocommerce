@@ -45,6 +45,11 @@ export class AddressService {
 			return;
 		}
 
+		// Clear stored original before writing the fields. Each write dispatches a
+		// bubbling change event that can re-enter restore(), and an already-cleared
+		// original makes that nested call bail out instead of recursing.
+		this.state.set('originalAddress', null);
+
 		// Restore all fields
 		this.#setFieldValue(ElementIDs.SHIPPING_ADDRESS_1, original.address_1, true);
 		this.#setFieldValue(ElementIDs.SHIPPING_ADDRESS_2, original.address_2, true);
@@ -52,9 +57,6 @@ export class AddressService {
 		this.#setFieldValue(ElementIDs.SHIPPING_POSTCODE, original.postcode, true);
 		this.#setFieldValue(ElementIDs.SHIPPING_COUNTRY, original.country, true);
 		this.#setFieldValue(ElementIDs.SHIPPING_STATE, original.state, true);
-
-		// Clear stored original
-		this.state.set('originalAddress', null);
 
 		// Trigger WooCommerce checkout update
 		this.#triggerCheckoutUpdate();
