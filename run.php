@@ -24,13 +24,14 @@ function plugin(): Plugin {
 
 	if ( is_null( $instance ) ) {
 		$config = array(
-			'MIN_WP_VERSION_SUPPORT_TERMS' => '6.0',
-			'MIN_WP_VERSION'               => '6.0',
+			'MIN_WP_VERSION_SUPPORT_TERMS' => '7.1',
+			'MIN_WP_VERSION'               => '7.1',
 			'MIN_PHP_VERSION'              => '8.1',
+			'MIN_WC_VERSION'               => '11.2',
 			'MIN_MYSQL_VERSION'            => '',
 			'PLUGIN_PREFIX'                => 'csbxwoo',
 			'PLUGIN_NAME'                  => 'BoxNow Delivery for WooCommerce by CodeSoup',
-			'PLUGIN_VERSION'               => '1.1.0',
+			'PLUGIN_VERSION'               => '1.2.0',
 			'PLUGIN_TEXTDOMAIN'            => 'codesoup-woo-boxnow',
 			'ENVIRONMENT'                  => \wp_get_environment_type(),
 		);
