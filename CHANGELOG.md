@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HPOS-compatible admin script enqueue on order screens
 
 ### Changed
-- Plugin tested with WordPress 7.1 and WooCommerce 11.2
+- Minimum supported versions raised to WordPress 7.1 and WooCommerce 11.2 (latest stable stack)
+- Compatibility verified against WordPress 7.1.3 and WooCommerce 11.2.1
 - WooCommerce declared as a required plugin in the plugin header
 
 ### Fixed
