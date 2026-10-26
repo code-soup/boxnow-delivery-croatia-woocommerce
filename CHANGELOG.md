@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-26
+
+### Added
+- Manual voucher creation from the order screen (button mode) with compartment size selection
+- Email mode for automatic voucher creation when orders are completed
+- BoxNow custom order status and cancel flow with parcel API cancellation
+- Pay at locker payment gateway integration
+- HPOS-compatible admin script enqueue on order screens
+
+### Changed
+- Plugin tested with WordPress 7.1 and WooCommerce 11.2
+- WooCommerce declared as a required plugin in the plugin header
+
+### Fixed
+- Checkout locker persistence and validation improvements
+- Order completion allowed after vouchers are created
+- Voucher settings and README documentation updates
+
 ## [1.1.0] - 2026-08-26
 
 ### Added
@@ -62,4 +80,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WooCommerce settings duplication issue
 - Multiple provider boot protection
 
+[1.2.0]: https://github.com/code-soup/boxnow-delivery-croatia-woocommerce/releases/tag/1.2.0
+[1.1.0]: https://github.com/code-soup/boxnow-delivery-croatia-woocommerce/releases/tag/1.1.0
 [1.0.0]: https://github.com/code-soup/woo-box-now-delivery-croatia/releases/tag/1.0.0

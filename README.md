@@ -13,8 +13,8 @@ Use at your own risk. Test thoroughly in a staging environment before production
 
 ## Requirements
 
-- WordPress 6.0 or higher
-- WooCommerce 8.0 or higher
+- WordPress 6.0 or higher (tested up to 7.1)
+- WooCommerce 8.0 or higher (tested up to 11.2)
 - PHP 8.1 or higher
 - BoxNow API credentials
 
