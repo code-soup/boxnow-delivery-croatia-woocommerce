@@ -13,6 +13,7 @@ use CodeSoup\BoxNow\Services\API\Parcel_Service;
 use CodeSoup\BoxNow\Services\Order_Service;
 use CodeSoup\BoxNow\Helpers\Order_Helper;
 use CodeSoup\BoxNow\Constants\Meta_Keys;
+use CodeSoup\BoxNow\Constants\Option_Keys;
 use function CodeSoup\BoxNow\plugin;
 
 defined( 'ABSPATH' ) || exit;
@@ -94,7 +95,15 @@ class Order_Handler {
 			return;
 		}
 
+		if ( 'email' !== get_option( Option_Keys::VOUCHER_OPTION, 'button' ) ) {
+			return;
+		}
+
 		if ( $order->get_meta( Meta_Keys::VOUCHER_CREATED, true ) ) {
+			return;
+		}
+
+		if ( ! empty( $this->order_service->get_parcel_ids( $order ) ) ) {
 			return;
 		}
 
@@ -265,7 +274,7 @@ class Order_Handler {
 		}
 
 		// Only show in button mode
-		if ( 'button' !== get_option( 'boxnow_voucher_option', 'button' ) ) {
+		if ( 'button' !== get_option( Option_Keys::VOUCHER_OPTION, 'button' ) ) {
 			return;
 		}
 
@@ -289,9 +298,7 @@ class Order_Handler {
 			$parcel_ids = ! empty( $parcel_ids ) ? array( $parcel_ids ) : array();
 		}
 
-		// Check if vouchers already created
-		$vouchers_created = $order->get_meta( Meta_Keys::VOUCHERS_CREATED, true );
-		$is_disabled      = (bool) $vouchers_created;
+		$is_disabled = count( $parcel_ids ) >= $max_vouchers && $max_vouchers > 0;
 
 		// Generate existing parcel HTML
 		$parcel_items_html = '';
