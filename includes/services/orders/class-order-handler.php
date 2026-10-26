@@ -226,7 +226,7 @@ class Order_Handler {
 	 * Register custom metaboxes.
 	 */
 	public function register_metaboxes(): void {
-		$screen = 'shop_order';
+		$screen = function_exists( 'wc_get_page_screen_id' ) ? wc_get_page_screen_id( 'shop-order' ) : 'shop_order';
 
 		add_meta_box(
 			'codesoup-box-now',
@@ -243,10 +243,16 @@ class Order_Handler {
 	 *
 	 * @param \WP_Post $post Post object.
 	 */
-	public function render_boxnow_metabox( $post ): void {
-		$order = wc_get_order( $post->ID );
+	public function render_boxnow_metabox( $post_or_order ): void {
+		if ( $post_or_order instanceof \WC_Order ) {
+			$order = $post_or_order;
+		} elseif ( $post_or_order instanceof \WP_Post ) {
+			$order = wc_get_order( $post_or_order->ID );
+		} else {
+			$order = wc_get_order( $post_or_order );
+		}
 
-		if ( ! $order ) {
+		if ( ! $order instanceof \WC_Order ) {
 			return;
 		}
 

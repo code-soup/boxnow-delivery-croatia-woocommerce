@@ -61,11 +61,6 @@ class Checkout_Handler {
 			return;
 		}
 
-		// Log shipping methods
-		$shipping_methods = $order->get_shipping_methods();
-		foreach ( $shipping_methods as $item ) {
-		}
-
 		$is_boxnow = Order_Helper::is_box_now_order( $order );
 
 		if ( ! $is_boxnow ) {
@@ -101,8 +96,7 @@ class Checkout_Handler {
 			// Fallback to session data
 			$session_data = Locker_Data_Manager::get_from_session();
 
-			if ( empty( $session_data ) ) {
-			} else {
+			if ( ! empty( $session_data ) ) {
 				Locker_Data_Manager::save_to_order( $order );
 			}
 		}
@@ -139,9 +133,6 @@ class Checkout_Handler {
 		}
 
 		Locker_Data_Manager::save_to_session( $data );
-
-		// Verify it was saved
-		$session_check = Locker_Data_Manager::get_from_session();
 
 		wp_send_json_success( $data );
 	}
