@@ -55,6 +55,41 @@ class Order_Service {
 	}
 
 	/**
+	 * Check whether the current user may edit a shop order.
+	 *
+	 * @param int $order_id Order ID.
+	 * @return bool
+	 */
+	public function user_can_edit_order( int $order_id ): bool {
+		if ( $order_id <= 0 ) {
+			return false;
+		}
+
+		if ( function_exists( 'wc_rest_check_post_permissions' ) ) {
+			return wc_rest_check_post_permissions( 'shop_order', 'edit', $order_id );
+		}
+
+		return current_user_can( 'edit_shop_order', $order_id ) || current_user_can( 'edit_shop_orders' );
+	}
+
+	/**
+	 * Check whether a parcel ID belongs to the given order.
+	 *
+	 * @param \WC_Order $order     Order object.
+	 * @param string    $parcel_id Parcel ID.
+	 * @return bool
+	 */
+	public function order_owns_parcel( \WC_Order $order, string $parcel_id ): bool {
+		$parcel_id = sanitize_text_field( $parcel_id );
+
+		if ( '' === $parcel_id ) {
+			return false;
+		}
+
+		return in_array( $parcel_id, $this->get_parcel_ids( $order ), true );
+	}
+
+	/**
 	 * Get all parcel IDs stored on an order.
 	 *
 	 * @param \WC_Order $order Order object.
