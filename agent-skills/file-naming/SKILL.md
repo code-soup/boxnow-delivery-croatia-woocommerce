@@ -23,10 +23,8 @@ AjaxHandler      → class-ajax-handler.php
 **Pattern**: `trait-{kebab-case-name}.php`
 
 ```
-LoggingTrait     → trait-logging.php
-LoggingTrait     → trait-logging.php
-CachingTrait     → trait-caching.php
-LoggingTrait     → trait-logging.php
+Logging_Trait              → trait-logging.php
+RequirementChecksTrait     → trait-requirement-checks.php
 ```
 
 ## Interfaces
@@ -58,19 +56,23 @@ AbstractController      → class-abstract-controller.php
 ### Subdirectories
 
 ```
-CodeSoup\BoxNow\Core        → includes/core/
-CodeSoup\BoxNow\Admin       → includes/admin/
-CodeSoup\BoxNow\Frontend    → includes/frontend/
-CodeSoup\BoxNow\Api         → includes/api/
-CodeSoup\BoxNow\Ajax        → includes/ajax/
-CodeSoup\BoxNow\Services    → includes/services/
-CodeSoup\BoxNow\Providers   → includes/providers/
-CodeSoup\BoxNow\PostTypes   → includes/post-types/
-CodeSoup\BoxNow\Taxonomies  → includes/taxonomies/
-CodeSoup\BoxNow\Traits      → includes/traits/
-CodeSoup\BoxNow\Interfaces  → includes/interfaces/
-CodeSoup\BoxNow\Abstracts   → includes/abstracts/
+CodeSoup\BoxNow\Core                        → includes/core/
+CodeSoup\BoxNow\Admin                       → includes/admin/
+CodeSoup\BoxNow\Frontend                    → includes/frontend/
+CodeSoup\BoxNow\Providers                   → includes/providers/
+CodeSoup\BoxNow\Services                    → includes/services/
+CodeSoup\BoxNow\Services\Ajax               → includes/services/ajax/
+CodeSoup\BoxNow\Services\API                → includes/services/api/
+CodeSoup\BoxNow\Integrations\WooCommerce      → includes/integrations/woocommerce/
+CodeSoup\BoxNow\Constants                   → includes/constants/
+CodeSoup\BoxNow\Helpers                     → includes/helpers/
+CodeSoup\BoxNow\Traits                      → includes/traits/
+CodeSoup\BoxNow\Interfaces                  → includes/interfaces/
+CodeSoup\BoxNow\Abstracts                   → includes/abstracts/
+CodeSoup\BoxNow\Exceptions                  → includes/exceptions/
 ```
+
+Sub-namespaces under `Services\` are listed in `includes/autoloader.php` (checkout, orders, shipping, email, shortcodes, etc.).
 
 ## Complete Examples
 

@@ -23,9 +23,10 @@ Edit `src/config/config.user.js`:
 
 ```javascript
 entry: {
-	"admin-common": ["./scripts/admin.js", "./styles/admin.scss"],
-	"frontend-common": ["./scripts/main.js", "./styles/main.scss"],
-	"new-bundle": ["./scripts/new.js", "./styles/new.scss"],
+	"admin-order": ["./scripts/admin/index.js"],
+	"checkout": ["./scripts/checkout/index.js", "./styles/checkout.scss"],
+	"checkout-blocks": ["./scripts/checkout/index-blocks.js"],
+	"new-bundle": ["./scripts/new/index.js", "./styles/new.scss"],
 },
 ```
 

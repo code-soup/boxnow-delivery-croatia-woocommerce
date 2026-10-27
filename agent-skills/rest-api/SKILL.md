@@ -5,6 +5,8 @@ description: Create REST API endpoints with controllers, routes, permissions, an
 
 # REST API
 
+> **This plugin does not ship REST controllers today.** BoxNow integration uses `wp-admin/admin-ajax.php` and server-side API services under `includes/services/api/`. Use this skill only when adding new REST routes to the plugin.
+
 Create REST API controllers for custom endpoints.
 
 ## Create Controller
