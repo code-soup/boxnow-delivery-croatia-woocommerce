@@ -233,7 +233,7 @@ View logs: WooCommerce → Status → Logs → Select `codesoup-boxnow-*`
 
 ### Production release (`develop` → `master`)
 
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full **wp-plugin-release** process.
+AI agents and contributors: **[AGENTS.md](AGENTS.md)** (portable) and **[CONTRIBUTING.md](CONTRIBUTING.md)** (human setup). Release steps live in AGENTS.md.
 
 Summary:
 
