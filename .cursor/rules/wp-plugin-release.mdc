@@ -1,0 +1,18 @@
+---
+description: BoxNow plugin release and branch policy. Follow AGENTS.md for the full workflow.
+alwaysApply: false
+---
+
+# Release and branches
+
+Read and follow **[AGENTS.md](../AGENTS.md)** in the repository root.
+
+That document is the canonical, provider-neutral instructions for:
+
+- `develop` vs `master`
+- Pull request targets and `dist/` policy
+- Version file bumps and changelog
+- Manual **Deploy Production** workflow (`release_version` + `DEPLOY`)
+- Webpack build via `wp-plugin-production-deploy` in CI
+
+Do not use `agent-skills/` as the source of truth for release behavior.

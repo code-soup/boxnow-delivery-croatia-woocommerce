@@ -20,7 +20,9 @@ Thumbs.db
 .settings
 .tmproj
 .vscode
-.cursor
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 *.esproj
 ._*
 .Spotlight-V100
@@ -52,7 +54,6 @@ _test-src
 dist
 _local
 _remote
-.cursor
 backups
 
 # Logs

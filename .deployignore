@@ -7,6 +7,9 @@
 src/
 node_modules/
 .github/
+AGENTS.md
+CONTRIBUTING.md
+.cursor/
 agent-skills/
 docs/
 backups/

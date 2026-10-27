@@ -231,6 +231,18 @@ Plugin uses WooCommerce logging system. Logs written to WooCommerce log file.
 
 View logs: WooCommerce → Status → Logs → Select `codesoup-boxnow-*`
 
+### Production release (`develop` → `master`)
+
+AI agents and contributors: **[AGENTS.md](AGENTS.md)** (portable) and **[CONTRIBUTING.md](CONTRIBUTING.md)** (human setup). Release steps live in AGENTS.md.
+
+Summary:
+
+1. Merge release-ready PRs into **`develop`** (version in `index.php`, `run.php`, `CHANGELOG.md`, etc.).
+2. Run **Actions → Deploy Production** with version + `DEPLOY` confirmation (does not run on merge).
+3. CI runs `npm run build:prod` (webpack → `dist/`), Composer prod install, and [wp-plugin-production-deploy](https://github.com/code-soup/wp-plugin-production-deploy) force-pushes **`master`**.
+
+`dist/` is not committed on `develop`; the action builds it. Exclusions: [`.deployignore`](.deployignore).
+
 ## Support
 
 Report issues at: https://github.com/code-soup/woo-box-now-delivery-croatia/issues
