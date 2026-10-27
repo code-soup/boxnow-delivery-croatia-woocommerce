@@ -1,11 +1,18 @@
 name: Deploy Production
 
 # Manual only: merging PRs into develop must NOT force-push master.
-# Run this workflow after develop contains the release you want on master.
 on:
     workflow_dispatch:
+        inputs:
+            release_version:
+                description: "Plugin version on develop (must match index.php Version header)"
+                required: true
+                type: string
+            confirm:
+                description: 'Type DEPLOY to publish develop → master'
+                required: true
+                type: string
 
-# Only one production deploy at a time; do not cancel an in-flight push to master.
 concurrency:
     group: wp-plugin-production-deploy
     cancel-in-progress: false
@@ -17,11 +24,29 @@ jobs:
     deploy:
         runs-on: ubuntu-latest
         steps:
+            - name: Validate dispatch confirmation
+              run: |
+                  if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+                    echo "::error::Confirmation must be exactly DEPLOY."
+                    exit 1
+                  fi
+
             - name: Checkout develop branch
               uses: actions/checkout@v5
               with:
                   ref: develop
                   fetch-depth: 0
+
+            - name: Verify plugin version on develop
+              run: |
+                  EXPECTED="${{ github.event.inputs.release_version }}"
+                  ACTUAL=$(grep -E '^\s*\*\s*Version:' index.php | head -1 | sed -E 's/.*Version:\s*//')
+                  ACTUAL=$(echo "$ACTUAL" | tr -d '[:space:]')
+                  if [ "$EXPECTED" != "$ACTUAL" ]; then
+                    echo "::error::index.php Version is '$ACTUAL' but workflow input was '$EXPECTED'."
+                    exit 1
+                  fi
+                  echo "Releasing version $ACTUAL from develop to master."
 
             - name: WordPress Plugin Production Deploy
               uses: code-soup/wp-plugin-production-deploy@v1.0.0

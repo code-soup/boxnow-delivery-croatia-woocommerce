@@ -1,0 +1,99 @@
+---
+description: BoxNow WordPress plugin release workflow (develop integration, manual production deploy to master, webpack build in CI). Use when cutting a version, bumping plugin metadata, changelog, or publishing master.
+alwaysApply: false
+---
+
+# wp-plugin-release (BoxNow WooCommerce)
+
+Adapted from GitHub's github-release pattern for this repo's **develop → master** model and [wp-plugin-production-deploy](https://github.com/code-soup/wp-plugin-production-deploy).
+
+## Branch model
+
+| Branch | Purpose |
+|--------|---------|
+| `develop` | Integration; merge feature/fix PRs here |
+| `master` | Production installable plugin only (built `dist/`, no `src/`) |
+
+**Merging into `develop` does not publish `master`.** Publishing is a separate manual GitHub Actions step.
+
+## Prerequisites
+
+- `gh auth status` and `git` inside this repository
+- Working tree clean before version bumps
+- Node **22+** and PHP **8.1+** locally only if you need to run `npm run build:prod` for debugging; **release build runs in CI**
+
+## Public paths (diff analysis)
+
+Focus changes on:
+
+- `includes/`
+- `src/` (webpack sources; not shipped on `master`)
+- `index.php`, `run.php`, `uninstall.php`
+
+Exclude from release notes unless user-visible: `agent-skills/`, `.github/`, tests, lockfiles, `dist/` on `develop` (generated in deploy).
+
+## Version files (keep in sync)
+
+When releasing **X.Y.Z**, update all of:
+
+1. `index.php` — `Version`, `Requires at least`, `Tested up to`, `WC requires at least`, `WC tested up to`
+2. `run.php` — `PLUGIN_VERSION`, `MIN_WP_VERSION`, `MIN_PHP_VERSION`, `MIN_WC_VERSION`
+3. `package.json` / `package-lock.json` — `version`
+4. `CHANGELOG.md` — Keep a Changelog section for X.Y.Z
+
+Confirm version with the user before writing.
+
+## Agent / PR policy
+
+- Open **feature and fix PRs against `develop`**, not `master`
+- Do **not** commit `dist/` to `develop` (`dist/` is gitignored; CI builds it during deploy)
+- JavaScript changes: edit `src/scripts/` only; webpack runs in deploy action via `npm run build:prod`
+- Do **not** add or expand `agent-skills/` for release behavior; this rule + `CONTRIBUTING.md` are the source of truth
+- Close or skip PRs that only add repo `agent-skills/` unless the team explicitly wants human docs there
+
+## Release steps
+
+### 1–4. Analyze (read-only)
+
+```bash
+git fetch origin develop master --tags
+PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+git log "${PREV_TAG:-$(git rev-list --max-parents=0 HEAD)}"..origin/develop --oneline --no-merges
+git diff "${PREV_TAG:-$(git rev-list --max-parents=0 HEAD)}"..origin/develop -- includes/ src/ index.php run.php
+```
+
+Apply semver from **code impact** (breaking → major, features → minor, fixes → patch).
+
+### 5. Integration PR(s) to `develop`
+
+- Version/changelog PR (or include in last feature PR before release)
+- Merge fixes before version bump when possible
+
+### 6. Publish to `master` (manual)
+
+After `develop` has the intended release:
+
+1. GitHub → **Actions** → **Deploy Production** → **Run workflow** (branch `develop`)
+2. Workflow uses `code-soup/wp-plugin-production-deploy@v1.0.0`:
+   - `npm ci` + `npm run build:prod` (webpack → `dist/`)
+   - `composer install --no-dev`
+   - Copy production files + apply `.deployignore`
+   - Force-push result to `master`
+
+Optional: tag `vX.Y.Z` on `master` and create a GitHub Release for notes.
+
+## Open PR merge order (typical)
+
+1. **Deploy workflow fix** (manual-only deploy) — before treating develop merges as safe
+2. Feature/fix PRs (#5–#7): PHP + `src/` only; no `dist/` on develop
+3. Version metadata PR (#8)
+4. Skip agent-skills-only PRs (#9–#10) unless maintaining human docs
+5. Run **Deploy Production** once for the release
+
+## Errors
+
+| Situation | Action |
+|-----------|--------|
+| Deploy run without merged release on develop | Cancel; merge integration first |
+| Committed `dist/` on develop | Remove; rely on CI build |
+| `on: push: develop` on deploy workflow | Remove; use `workflow_dispatch` only |
