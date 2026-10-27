@@ -6,9 +6,9 @@ Skills below are **recommended additions** not yet required for every task. This
 
 | Priority | Skill | Why |
 |----------|--------|-----|
-| P0 | [woocommerce-integration](woocommerce-integration/SKILL.md) | Settings API, shipping method, gateways, HPOS screens, order meta — most plugin surface area |
-| P0 | [boxnow-api](boxnow-api/SKILL.md) | Delivery requests, parcels, auth, errors — core business integration |
-| P1 | [checkout-locker](checkout-locker/SKILL.md) | Session vs POST, blocks vs classic, widget modes |
+| P0 | [woocommerce-integration](woocommerce-integration/SKILL.md) | **Added** — settings, shipping, HPOS, orders |
+| P0 | [boxnow-api](boxnow-api/SKILL.md) | **Added** — delivery requests, parcels, auth |
+| P1 | [checkout-locker](checkout-locker/SKILL.md) | **Added** — session vs POST, blocks vs classic |
 | P1 | [constants-and-meta](constants-and-meta/SKILL.md) | **Added** — `Option_Keys`, `Meta_Keys`, `Form_Fields` |
 | P2 | [release-and-versioning](release-and-versioning/SKILL.md) | **Added** — version bump checklist |
 | P2 | woocommerce-logging (not added) | Document in `traits/SKILL.md` instead |
