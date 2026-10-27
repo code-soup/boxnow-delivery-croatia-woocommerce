@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Release and branches
 
-Read and follow **[AGENTS.md](../../AGENTS.md)** in the repository root.
+Read and follow **[AGENTS.md](../AGENTS.md)** in the repository root.
 
 That document is the canonical, provider-neutral instructions for:
 

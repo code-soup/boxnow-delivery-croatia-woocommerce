@@ -54,7 +54,6 @@ _test-src
 dist
 _local
 _remote
-.cursor
 backups
 
 # Logs
