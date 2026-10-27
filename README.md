@@ -233,9 +233,9 @@ View logs: WooCommerce → Status → Logs → Select `codesoup-boxnow-*`
 
 ### Production release (`develop` → `master`)
 
-Pushes to **`develop`** run [Deploy Production](.github/workflows/deploy-production.yml), which uses [code-soup/wp-plugin-production-deploy](https://github.com/code-soup/wp-plugin-production-deploy) to build assets, install production Composer dependencies, and force-push a clean plugin tree to **`master`**.
+Merging pull requests into **`develop` does not** publish to **`master`**. When `develop` is ready for distribution, run the **[Deploy Production](.github/workflows/deploy-production.yml)** workflow manually (Actions → Deploy Production → Run workflow). It uses [code-soup/wp-plugin-production-deploy](https://github.com/code-soup/wp-plugin-production-deploy) to build assets, install production Composer dependencies, and force-push a clean plugin tree to **`master`**.
 
-Exclusions are defined in [`.deployignore`](.deployignore) (no `src/`, tests, or GitHub metadata on `master`). You can also trigger the workflow manually from the Actions tab.
+Exclusions are defined in [`.deployignore`](.deployignore) (no `src/`, tests, or GitHub metadata on `master`).
 
 ## Support
 

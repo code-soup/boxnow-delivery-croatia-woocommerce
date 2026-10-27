@@ -1,10 +1,9 @@
 name: Deploy Production
 
+# Manual only: merging PRs into develop must NOT force-push master.
+# Run this workflow after develop contains the release you want on master.
 on:
     workflow_dispatch:
-    push:
-        branches:
-            - develop
 
 # Only one production deploy at a time; do not cancel an in-flight push to master.
 concurrency:

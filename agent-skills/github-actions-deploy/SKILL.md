@@ -13,8 +13,9 @@ Workflow: `.github/workflows/deploy-production.yml`
 
 ## Triggers
 
-- Push to `develop`
-- Manual **workflow_dispatch** (Actions → Deploy Production)
+- **Manual only** — `workflow_dispatch` (Actions → Deploy Production → Run workflow)
+
+Do **not** add `on: push: develop` unless every merge to `develop` should immediately overwrite `master` (docs-only PRs would still ship to production).
 
 ## What the action does
 
