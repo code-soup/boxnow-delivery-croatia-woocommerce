@@ -20,7 +20,9 @@ Thumbs.db
 .settings
 .tmproj
 .vscode
-.cursor
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 *.esproj
 ._*
 .Spotlight-V100
