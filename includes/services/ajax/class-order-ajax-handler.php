@@ -100,18 +100,17 @@ class Order_AJAX_Handler {
 			wp_send_json_error( __( 'Security check failed.', 'codesoup-woo-boxnow' ), 403 );
 		}
 
-		// Verify permissions.
-		if ( ! current_user_can( 'edit_shop_orders' ) ) {
-			wp_send_json_error( __( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), 403 );
-		}
-
-		$order_id          = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
-		$voucher_quantity  = isset( $_POST['voucher_quantity'] ) ? absint( $_POST['voucher_quantity'] ) : 1;
+		$order_id         = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
+		$voucher_quantity = isset( $_POST['voucher_quantity'] ) ? absint( $_POST['voucher_quantity'] ) : 1;
 		$compartment_size  = isset( $_POST['compartment_size'] ) ? absint( $_POST['compartment_size'] ) : null;
 		$show_recipient    = $this->get_posted_bool( 'show_recipient_information', true );
 
 		if ( ! $order_id ) {
 			wp_send_json_error( __( 'Invalid order ID.', 'codesoup-woo-boxnow' ), 400 );
+		}
+
+		if ( ! $this->order_service->user_can_edit_order( $order_id ) ) {
+			wp_send_json_error( __( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), 403 );
 		}
 
 		// Validate compartment size (1=small, 2=medium, 3=large)
@@ -257,11 +256,6 @@ class Order_AJAX_Handler {
 			wp_send_json_error( __( 'Security check failed.', 'codesoup-woo-boxnow' ), 403 );
 		}
 
-		// Verify permissions.
-		if ( ! current_user_can( 'edit_shop_orders' ) ) {
-			wp_send_json_error( __( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), 403 );
-		}
-
 		$order_id  = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
 		$parcel_id = isset( $_POST['parcel_id'] ) ? sanitize_text_field( wp_unslash( $_POST['parcel_id'] ) ) : '';
 
@@ -269,9 +263,17 @@ class Order_AJAX_Handler {
 			wp_send_json_error( __( 'Invalid order ID or parcel ID.', 'codesoup-woo-boxnow' ), 400 );
 		}
 
+		if ( ! $this->order_service->user_can_edit_order( $order_id ) ) {
+			wp_send_json_error( __( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), 403 );
+		}
+
 		$order = wc_get_order( $order_id );
 		if ( ! $order || ! Order_Helper::is_box_now_order( $order ) ) {
 			wp_send_json_error( __( 'Invalid BoxNow order.', 'codesoup-woo-boxnow' ), 400 );
+		}
+
+		if ( ! $this->order_service->order_owns_parcel( $order, $parcel_id ) ) {
+			wp_send_json_error( __( 'Parcel does not belong to this order.', 'codesoup-woo-boxnow' ), 400 );
 		}
 
 		try {
@@ -317,15 +319,14 @@ class Order_AJAX_Handler {
 			wp_send_json_error( __( 'Security check failed.', 'codesoup-woo-boxnow' ), 403 );
 		}
 
-		// Verify permissions.
-		if ( ! current_user_can( 'edit_shop_orders' ) ) {
-			wp_send_json_error( __( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), 403 );
-		}
-
 		$order_id = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
 
 		if ( ! $order_id ) {
 			wp_send_json_error( __( 'Invalid order ID.', 'codesoup-woo-boxnow' ), 400 );
+		}
+
+		if ( ! $this->order_service->user_can_edit_order( $order_id ) ) {
+			wp_send_json_error( __( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), 403 );
 		}
 
 		$order = wc_get_order( $order_id );
@@ -407,15 +408,24 @@ class Order_AJAX_Handler {
 	 * Handle AJAX request to print voucher PDF.
 	 */
 	public function ajax_print_box_now_voucher(): void {
-		// Verify permissions.
-		if ( ! current_user_can( 'edit_shop_orders' ) ) {
-			wp_die( esc_html__( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ) );
+		if ( ! $this->verify_get_nonce() ) {
+			wp_die( esc_html__( 'Security check failed.', 'codesoup-woo-boxnow' ), '', array( 'response' => 403 ) );
 		}
 
+		$order_id  = isset( $_GET['order_id'] ) ? absint( $_GET['order_id'] ) : 0;
 		$parcel_id = isset( $_GET['parcel_id'] ) ? sanitize_text_field( wp_unslash( $_GET['parcel_id'] ) ) : '';
 
-		if ( empty( $parcel_id ) ) {
-			wp_die( esc_html__( 'Parcel ID was not found.', 'codesoup-woo-boxnow' ) );
+		if ( ! $order_id || empty( $parcel_id ) ) {
+			wp_die( esc_html__( 'Invalid order or parcel ID.', 'codesoup-woo-boxnow' ), '', array( 'response' => 400 ) );
+		}
+
+		if ( ! $this->order_service->user_can_edit_order( $order_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'codesoup-woo-boxnow' ), '', array( 'response' => 403 ) );
+		}
+
+		$order = wc_get_order( $order_id );
+		if ( ! $order || ! Order_Helper::is_box_now_order( $order ) || ! $this->order_service->order_owns_parcel( $order, $parcel_id ) ) {
+			wp_die( esc_html__( 'Parcel does not belong to this order.', 'codesoup-woo-boxnow' ), '', array( 'response' => 400 ) );
 		}
 
 		$this->parcel_service->output_parcel_label( $parcel_id );
@@ -432,6 +442,17 @@ class Order_AJAX_Handler {
 		if ( isset( $_POST['nonce'] ) ) {
 			$nonce = sanitize_text_field( wp_unslash( $_POST['nonce'] ) );
 		}
+
+		return (bool) wp_verify_nonce( $nonce, self::NONCE_ACTION );
+	}
+
+	/**
+	 * Verify nonce from a GET request.
+	 *
+	 * @return bool
+	 */
+	private function verify_get_nonce(): bool {
+		$nonce = isset( $_GET['nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['nonce'] ) ) : '';
 
 		return (bool) wp_verify_nonce( $nonce, self::NONCE_ACTION );
 	}

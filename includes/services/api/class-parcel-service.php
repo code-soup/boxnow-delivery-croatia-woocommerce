@@ -91,7 +91,7 @@ class Parcel_Service {
 			return null;
 		}
 
-		$endpoint = $this->get_endpoint( '/api/v1/parcels/' . $parcel_id . '/label.pdf' );
+		$endpoint = $this->get_endpoint( '/api/v1/parcels/' . rawurlencode( (string) $parcel_id ) . '/label.pdf' );
 
 		$response = wp_remote_get(
 			$endpoint,

@@ -183,7 +183,14 @@ export class VoucherManager {
 			if (event.target.matches('.codesoup-boxnow-parcel-link')) {
 				event.preventDefault();
 				const parcelId = event.target.getAttribute('data-parcel-id');
-				const url = `${this.apiClient.ajaxUrl}?action=print_box_now_voucher&parcel_id=${parcelId}`;
+				const orderId = document.getElementById(FormFields.VOUCHER_ORDER_ID)?.value;
+				const params = new URLSearchParams({
+					action: 'print_box_now_voucher',
+					parcel_id: parcelId,
+					order_id: orderId || '',
+					nonce: this.apiClient.nonce,
+				});
+				const url = `${this.apiClient.ajaxUrl}?${params.toString()}`;
 				this.#showPdfModal(url, parcelId);
 			}
 
