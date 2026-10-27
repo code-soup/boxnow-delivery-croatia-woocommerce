@@ -7,6 +7,8 @@ description: Security best practices - escape output, sanitize input, verify non
 
 Security best practices for WordPress plugin development.
 
+**BoxNow plugin defaults:** AJAX nonce action `codesoup_boxnow_nonce` (see `Order_AJAX_Handler`, `Checkout_Handler`, `myAjax` localization). Generic `csbxwoo_*` examples below illustrate patterns for new admin forms.
+
 ## Escape Output
 
 Always escape data before displaying.
@@ -136,7 +138,7 @@ $filename = sanitize_file_name( $_FILES['file']['name'] );
 ### Create Nonce
 
 ```php
-$nonce = wp_create_nonce( 'csbxwoo_action' );
+$nonce = wp_create_nonce( 'codesoup_boxnow_nonce' );
 ```
 
 ### Verify Nonce (Form)

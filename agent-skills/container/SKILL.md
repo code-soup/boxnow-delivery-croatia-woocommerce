@@ -5,182 +5,68 @@ description: Use dependency injection container to resolve services and manage d
 
 # Container Service
 
-The Container manages dependency injection. Use for service resolution and dependency management.
+`CodeSoup\BoxNow\Core\Container` is exposed as `plugin()->container` (public property on `Plugin`).
 
-## Get Container
-
-### From Global Plugin Instance
+## Retrieve services
 
 ```php
 use function CodeSoup\BoxNow\plugin;
 
-$container = plugin()->get_container();
+$hooker = plugin()->get( 'hooker' );
+$assets = plugin()->get( 'assets' );
 ```
 
-### In Service Provider
+`plugin()->get( $alias )` is the usual shortcut. There is **no** `plugin()->get_container()` method.
+
+## In service providers
 
 ```php
-$this->container->get( 'service.name' );
+$this->container->get( 'order_service' );
 ```
 
-## Retrieve Service
+Use protected helpers on `AbstractServiceProvider`:
+
+- `singleton( $id, $concrete )` — shared instance
+- `factory( $id, $concrete )` — new instance per resolution (wraps `bind`)
+
+## Registered aliases (BoxNow plugin)
+
+Common bindings from `Plugin::bind_services()` and providers:
+
+| Alias | Type |
+|-------|------|
+| `hooker` | `Hooker` |
+| `assets` | `Assets` |
+| `i18n` | `I18n` |
+| `settings` | `Settings_Service` |
+| `locker_data` | `Locker_Data_Service` |
+| `order_service` | `Order_Service` |
+| `error_handler` | `Error_Handler` |
+
+Feature-specific services (examples): `order_ajax_handler`, `delivery_service`, `parcel_service` — see providers under `includes/providers/`.
+
+## Automatic constructor resolution
+
+The container resolves type-hinted constructor parameters when registering a class name or closure that receives `$container`.
+
+## Manual registration
 
 ```php
-$service = $container->get( 'admin.settings' );
-```
-
-## Register Service
-
-### Singleton
-
-```php
-$container->singleton( 'service.name', ServiceClass::class );
-
-// With closure
-$container->singleton( 'service.name', function( $container ) {
-	return new ServiceClass(
-		$container->get( 'dependency' )
-	);
-} );
-```
-
-### Bind
-
-```php
-$container->bind( 'service.name', ServiceClass::class );
-
-// With closure
-$container->bind( 'service.name', function( $container ) {
-	return new ServiceClass();
-} );
-```
-
-### Instance
-
-```php
-$instance = new ServiceClass();
-$container->instance( 'service.name', $instance );
-```
-
-## Check if Service Exists
-
-```php
-if ( $container->has( 'service.name' ) ) {
-	$service = $container->get( 'service.name' );
-}
-```
-
-## Automatic Dependency Resolution
-
-Container automatically resolves constructor dependencies:
-
-```php
-class SettingsPage {
-	public function __construct(
-		Hooker $hooker,
-		array $config
-	) {
-		$this->hooker = $hooker;
-		$this->config = $config;
-	}
-}
-
-// Container resolves Hooker automatically
-$container->singleton( 'admin.settings', SettingsPage::class );
-$settings = $container->get( 'admin.settings' );
-```
-
-## Manual Dependency Injection
-
-```php
-$container->singleton( 'service.name', function( $container ) {
-	return new ServiceClass(
-		$container->get( 'hooker' ),
-		$container->get( 'config' ),
-		$container->get( 'custom.dependency' )
-	);
-} );
-```
-
-## Built-in Services
-
-Available services:
-
-- `hooker` - Hooker service
-- `config` - Plugin configuration array
-- `admin.enqueue` - Admin asset enqueuer
-- `frontend.enqueue` - Frontend asset enqueuer
-
-## Complete Example
-
-```php
-<?php
-
-namespace CodeSoup\BoxNow\Services;
-
-use CodeSoup\BoxNow\Core\Hooker;
-use CodeSoup\BoxNow\Repositories\PostRepository;
-
-class PostService {
-
-	private Hooker $hooker;
-	private PostRepository $repository;
-	private array $config;
-
-	public function __construct(
-		Hooker $hooker,
-		PostRepository $repository,
-		array $config
-	) {
-		$this->hooker     = $hooker;
-		$this->repository = $repository;
-		$this->config     = $config;
-	}
-
-	public function init(): void {
-		$this->hooker->add_action(
-			'init',
-			$this,
-			'register_post_type'
+$this->singleton(
+	'order_ajax_handler',
+	function ( $container ) {
+		return new Order_AJAX_Handler(
+			$container->get( 'hooker' ),
+			$container->get( 'delivery_service' ),
+			$container->get( 'parcel_service' ),
+			$container->get( 'order_service' )
 		);
 	}
-
-	public function register_post_type(): void {
-		// Register custom post type
-	}
-}
-```
-
-Register in service provider:
-
-```php
-public function register(): void {
-	// Register repository
-	$this->singleton(
-		'repositories.post',
-		PostRepository::class
-	);
-
-	// Register service (dependencies auto-resolved)
-	$this->singleton(
-		'services.post',
-		PostService::class
-	);
-}
-
-public function boot(): void {
-	$this->container->get( 'services.post' )->init();
-}
+);
 ```
 
 ## Rules
 
-- Use dependency injection in constructors
-- Register services in service providers
-- Use singleton for shared instances
-- Use bind for new instances each time
-- Let container auto-resolve dependencies when possible
-- Use descriptive service names
-- Never instantiate services with `new` directly
-- Always retrieve services from container
-
+- Register services in service providers, not in arbitrary classes.
+- Use `singleton()` for shared services.
+- Prefer constructor injection over `plugin()->get()` inside deep business logic.

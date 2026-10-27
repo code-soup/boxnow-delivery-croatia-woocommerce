@@ -11,6 +11,10 @@ Handle plugin lifecycle events.
 
 **File**: `includes/core/class-activator.php`
 
+In this plugin, `Activator::activate()` is currently empty. **Runtime** requirement checks run on every load via `Plugin::is_compatible()` using config from `run.php` (`MIN_WP_VERSION`, `MIN_PHP_VERSION`, `MIN_WC_VERSION`).
+
+If you add activation logic, keep version keys in sync with `index.php` headers.
+
 ```php
 <?php
 
@@ -26,12 +30,11 @@ class Activator {
 
 	public static function activate(): void {
 		$config = array(
-			'MIN_WP_VERSION'  => '5.8',
-			'MIN_PHP_VERSION' => '7.4',
+			'MIN_WP_VERSION'  => '7.1',
+			'MIN_PHP_VERSION' => '8.1',
+			'MIN_WC_VERSION'  => '11.2',
 		);
 
-		// Check requirements - throws \Exception on failure
-		// WordPress auto-deactivates plugin if activation fails
 		self::run_requirement_checks( $config );
 
 		// Create database tables

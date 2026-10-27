@@ -1,15 +1,25 @@
 ---
 name: hooker
-description: Use Hooker service to register WordPress actions and filters. Use when adding WordPress hooks, filters, or actions in the plugin. Never use add_action or add_filter directly.
+description: Use Hooker service to register WordPress actions and filters. Use when adding WordPress hooks, filters, or actions in the plugin. Prefer Hooker over direct add_action/add_filter except documented enqueue exceptions.
 ---
 
 # Hooker Service
 
-The Hooker service manages WordPress hooks. Always use Hooker, never direct `add_action`/`add_filter`.
+The Hooker service **collects** hooks during bootstrap and registers them when `Hooker::run()` is called from `Plugin::run()`.
 
-## Get Hooker Instance
+## Get Hooker instance
 
-Use the `plugin()` helper function to get the Hooker service:
+Inject via constructor (preferred):
+
+```php
+use CodeSoup\BoxNow\Core\Hooker;
+
+public function __construct( Hooker $hooker ) {
+	$this->hooker = $hooker;
+}
+```
+
+Or resolve when registering hooks (in `init()`, not in constructors):
 
 ```php
 use function CodeSoup\BoxNow\plugin;
@@ -17,9 +27,7 @@ use function CodeSoup\BoxNow\plugin;
 $hooker = plugin()->get( 'hooker' );
 ```
 
-**Important**: Do NOT call `plugin()` in class constructors during plugin initialization to avoid circular dependencies. Call it in `init()` methods instead.
-
-## Add Action
+## Add action
 
 ```php
 $this->hooker->add_action(
@@ -31,156 +39,50 @@ $this->hooker->add_action(
 );
 ```
 
-Parameters:
-- Hook name
-- Object instance (`$this`)
-- Method name (string)
-- Priority (default: 10)
-- Accepted args (default: 1)
+If the method name matches the hook name, omit the third argument:
 
-## Add Filter
+```php
+$this->hooker->add_action( 'init', $this );
+```
+
+## Add filter
 
 ```php
 $this->hooker->add_filter(
-	'the_content',
+	'woocommerce_checkout_fields',
 	$this,
-	'filter_content',
+	'add_hidden_fields',
 	10,
 	1
 );
 ```
 
-## Add Multiple Actions
+## Multiple actions or filters
+
+`add_actions()` and `add_filters()` accept an **array of tuples** `[ $hook, $component, $method, $priority, $accepted_args ]`:
 
 ```php
 $this->hooker->add_actions(
-	$this,
 	array(
-		'init',
-		'admin_init',
-		'wp_loaded',
+		array( 'wp_ajax_create_box_now_vouchers', $this, 'ajax_create_box_now_vouchers' ),
+		array( 'wp_ajax_cancel_voucher', $this, 'ajax_cancel_voucher' ),
 	)
 );
 ```
 
-Each hook calls method with same name: `init()`, `admin_init()`, `wp_loaded()`
+Method name is required when the hook name is not a valid PHP method name (for example `wp_ajax_*`).
 
-## Add Multiple Filters
+## Method validation
 
-```php
-$this->hooker->add_filters(
-	$this,
-	array(
-		'the_content',
-		'the_title',
-		'the_excerpt',
-	)
-);
-```
+Hooker throws if the callback method does not exist on the object.
 
-## Bulk Registration (Advanced)
+## Exception: asset enqueue timing
 
-```php
-$hooks = array(
-	array(
-		'type'     => 'action',
-		'hook'     => 'init',
-		'callback' => 'init_method',
-		'priority' => 10,
-		'args'     => 1,
-	),
-	array(
-		'type'     => 'filter',
-		'hook'     => 'the_content',
-		'callback' => 'filter_content',
-		'priority' => 20,
-		'args'     => 1,
-	),
-);
-
-$this->hooker->register( $this, $hooks );
-```
-
-## Method Omission Fallback
-
-If method is null, hook name becomes method name:
-
-```php
-// Calls $this->init() method
-$this->hooker->add_action( 'init', $this );
-```
-
-## Method Validation
-
-Hooker validates methods exist before registering:
-
-```php
-// Throws exception if method missing
-$this->hooker->add_action( 'init', $this, 'missing_method' );
-// Exception: Method "missing_method" does not exist in class "YourClass"
-```
-
-## Complete Example
-
-```php
-<?php
-
-namespace CodeSoup\BoxNow\Admin;
-
-use function CodeSoup\BoxNow\plugin;
-
-class SettingsPage {
-
-	public function __construct() {
-		// Constructor intentionally empty
-	}
-
-	public function init(): void {
-		$hooker = plugin()->get( 'hooker' );
-
-		// Multiple actions at once
-		$hooker->add_actions(
-			$this,
-			array(
-				'admin_menu',
-				'admin_init',
-			)
-		);
-
-		// Single filter with custom priority and args
-		$hooker->add_filter(
-			'plugin_action_links',
-			$this,
-			'add_settings_link',
-			10,
-			2
-		);
-	}
-
-	public function admin_menu(): void {
-		// Add menu page
-	}
-
-	public function admin_init(): void {
-		// Register settings
-	}
-
-	public function add_settings_link( array $links, string $file ): array {
-		// Add settings link
-		return $links;
-	}
-}
-```
+`includes/admin/class-init.php` and `includes/frontend/class-init.php` call `add_action( 'admin_enqueue_scripts' | 'wp_enqueue_scripts', ... )` **directly** so scripts enqueue even when `admin_enqueue_scripts` fires before deferred Hooker registration completes. Do not copy this pattern unless you have the same bootstrap ordering issue.
 
 ## Rules
 
-- Always use Hooker service
-- Never use `add_action()` or `add_filter()` directly
-- Pass `$this` as second parameter
-- Use method name as string (third parameter)
-- Use dependency injection to get Hooker instance
-- Register hooks in `init()` method
-- Use `add_actions()` for multiple actions
-- Use `add_filters()` for multiple filters
-- Use `register()` for complex bulk registration
-
+- Prefer Hooker for feature hooks registered from service providers.
+- Pass `$this` as the component for class methods.
+- Register hooks from `init()` on services, not from constructors.
+- Do not assume a `register()` bulk API exists on Hooker (it does not).

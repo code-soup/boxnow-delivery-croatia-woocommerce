@@ -46,7 +46,7 @@ class SettingsServiceProvider extends AbstractServiceProvider {
 
 namespace CodeSoup\BoxNow\Providers;
 
-use CodeSoup\BoxNow\Contracts\ServiceProviderInterface;
+use CodeSoup\BoxNow\Interfaces\ServiceProviderInterface;
 use CodeSoup\BoxNow\Core\Container;
 use CodeSoup\BoxNow\Admin\Dashboard;
 
@@ -96,12 +96,12 @@ One instance shared across application:
 $this->singleton( 'service.name', ServiceClass::class );
 ```
 
-### Bind
+### Factory (`bind`)
 
-New instance each time:
+New instance each time — use `factory()` on `AbstractServiceProvider`:
 
 ```php
-$this->bind( 'service.name', ServiceClass::class );
+$this->factory( 'service.name', ServiceClass::class );
 ```
 
 ### Instance

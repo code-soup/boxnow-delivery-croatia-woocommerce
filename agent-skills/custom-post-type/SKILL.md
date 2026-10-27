@@ -5,6 +5,8 @@ description: Register custom post types and taxonomies with proper labels, capab
 
 # Custom Post Type
 
+> **This plugin does not register custom post types.** Orders use WooCommerce `shop_order` (HPOS or posts). Use this skill only for new CPT features, not for BoxNow orders or vouchers.
+
 Register custom post types and taxonomies.
 
 ## Create CPT Class

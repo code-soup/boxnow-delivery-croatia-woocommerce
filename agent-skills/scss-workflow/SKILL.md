@@ -11,18 +11,12 @@ SCSS structure and build workflow.
 
 ```
 src/styles/
-├── abstracts/
-│   ├── _variables.scss    # Colors, sizes, breakpoints
-│   ├── _mixins.scss        # Reusable mixins
-│   └── _functions.scss     # Custom functions
-├── core/
-│   ├── _reset.scss         # CSS reset
-│   ├── _typography.scss    # Font styles
-│   └── _utilities.scss     # Utility classes
-├── vendor/
-│   └── _normalize.scss     # Third-party CSS
-├── admin.scss              # Admin entry point
-└── main.scss               # Frontend entry point
+├── abstracts/              # variables, mixins, functions, placeholders
+├── core/                   # reset, layout, typography; core/admin/* for admin
+├── components/             # checkout UI (button, popup, embedded, …)
+├── admin.scss              # Admin bundle (imported from scripts/admin/index.js)
+├── checkout.scss           # Classic checkout bundle
+└── main.scss               # Shared entry if needed
 ```
 
 ## Entry Points

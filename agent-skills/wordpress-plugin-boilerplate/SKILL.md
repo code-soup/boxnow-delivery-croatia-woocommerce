@@ -14,26 +14,30 @@ Modern WordPress plugin architecture with dependency injection, service provider
 - **Hooker**: Manages WordPress hooks
 - **Modular Webpack**: Build system in `src/config/`
 
-## Directory Structure
+## Directory Structure (this plugin)
 
 ```
 includes/
-├── core/              # Core classes (Plugin, Container, Hooker)
-├── providers/         # Service providers
-├── admin/             # Admin functionality
-├── frontend/          # Public-facing functionality
-├── api/               # REST API controllers
-├── abstracts/         # Abstract classes
-├── contracts/         # Interfaces
-└── traits/            # Reusable traits
+├── core/                    # Plugin, Container, Hooker, Assets
+├── providers/               # Service providers
+├── admin/                   # Admin init + views
+├── frontend/                # Frontend init
+├── services/                # Business logic (api, ajax, checkout, orders, shipping, …)
+├── integrations/woocommerce/ # WooCommerce settings pages
+├── constants/               # Option/meta/session keys
+├── helpers/                 # Order/locker helpers
+├── interfaces/              # ServiceProviderInterface, etc.
+├── abstracts/               # AbstractServiceProvider
+├── traits/                  # Logging_Trait, RequirementChecksTrait
+└── exceptions/
 
 src/
-├── config/            # Webpack configuration
-├── scripts/           # JavaScript files
-├── styles/            # SCSS files
-├── icons/             # SVG icons
-└── fonts/             # Font files
+├── config/                  # Webpack configuration
+├── scripts/                 # admin/, checkout/
+└── styles/                  # admin.scss, checkout.scss, components/
 ```
+
+There is no `includes/api/` or `includes/ajax/` in this project; AJAX lives under `includes/services/ajax/`.
 
 ## File Naming Conventions
 
@@ -52,13 +56,18 @@ src/
 ### Namespaces
 
 ```php
-namespace CodeSoup\BoxNow\Admin;        // Admin classes
-namespace CodeSoup\BoxNow\Frontend;     // Frontend classes
-namespace CodeSoup\BoxNow\Api;          // API controllers
-namespace CodeSoup\BoxNow\Services;     // Services
-namespace CodeSoup\BoxNow\Providers;    // Service providers
-namespace CodeSoup\BoxNow\Repositories; // Repositories
+namespace CodeSoup\BoxNow\Admin;
+namespace CodeSoup\BoxNow\Frontend;
+namespace CodeSoup\BoxNow\Services;              // Services
+namespace CodeSoup\BoxNow\Services\Ajax;         // AJAX handlers
+namespace CodeSoup\BoxNow\Services\API;          // BoxNow API clients
+namespace CodeSoup\BoxNow\Integrations\WooCommerce;
+namespace CodeSoup\BoxNow\Providers;
+namespace CodeSoup\BoxNow\Constants;
+namespace CodeSoup\BoxNow\Helpers;
 ```
+
+See `includes/autoloader.php` for the full namespace map.
 
 ## Coding Standards
 
@@ -76,15 +85,13 @@ $items = ['one', 'two', 'three'];
 
 ### Hooks
 
-Never use `add_action`/`add_filter` directly. Always use Hooker:
+Prefer Hooker for feature hooks:
 
 ```php
-// Correct
 $this->hooker->add_action( 'init', $this, 'init_method' );
-
-// Wrong
-add_action( 'init', array( $this, 'init_method' ) );
 ```
+
+**Exception:** `Admin\Init` and `Frontend\Init` may call `add_action()` directly for `*_enqueue_scripts` when hook timing requires it (see `agent-skills/hooker/SKILL.md`).
 
 ### Dependency Injection
 
@@ -246,10 +253,10 @@ protected array $providers = array(
 
 ### AJAX Handler
 
-1. Create class in `includes/ajax/`
+1. Create class in `includes/services/ajax/`
 2. Use Hooker for `wp_ajax_*` hooks
-3. Handle request and return JSON
-4. Register in service provider
+3. Verify nonce and capabilities; return JSON
+4. Register in `AjaxServiceProvider` (or feature provider)
 
 ## Rules
 

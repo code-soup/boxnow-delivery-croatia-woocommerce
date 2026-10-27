@@ -5,194 +5,59 @@ description: Use existing traits and create custom traits for code reuse. Use wh
 
 # Traits
 
-Traits provide reusable methods across classes.
+## Available traits in this plugin
 
-## Available Traits
+### `Logging_Trait`
 
-### LoggingTrait
+**File**: `includes/traits/trait-logging.php`  
+**Namespace**: `CodeSoup\BoxNow\Traits`
 
-Log debug messages to WordPress debug log.
-
-**Location**: `includes/traits/trait-logging.php`
-
-**Requires**: `WP_DEBUG_LOG` enabled.
+Uses the **WooCommerce logger** (`wc_get_logger()`), source slug `codesoup-boxnow`.
 
 ```php
-use CodeSoup\BoxNow\Traits\LoggingTrait;
+use CodeSoup\BoxNow\Traits\Logging_Trait;
 
-class MyClass {
-	use LoggingTrait;
+class Order_AJAX_Handler {
+	use Logging_Trait;
 
-	public function process(): void {
-		$this->log( 'Processing started', 'info' );
-		$this->log( 'Error occurred', 'error' );
-		$this->log( 'Warning message', 'warning' );
+	public function example(): void {
+		$this->log_info( 'Vouchers created' );
+		$this->log_error( 'API failure' );
+		$this->log_warning( 'Retrying' );
+		$this->log_debug( 'Payload', array( 'order_id' => 123 ) );
+		$this->log_exception( $e, 'create_delivery_request' );
 	}
 }
 ```
 
-### RequirementChecksTrait
+`log_debug()` only writes when `WP_DEBUG` is true.
 
-Check WordPress and PHP version requirements. Throws exception on failure.
+### `RequirementChecksTrait`
 
-**Location**: `includes/traits/trait-requirement-checks.php`
+**File**: `includes/traits/trait-requirement-checks.php`
 
-```php
-use CodeSoup\BoxNow\Traits\RequirementChecksTrait;
-
-class Activator {
-	use RequirementChecksTrait;
-
-	public static function activate(): void {
-		$config = array(
-			'MIN_WP_VERSION'  => '5.8',
-			'MIN_PHP_VERSION' => '7.4',
-		);
-
-		// Throws \Exception if requirements not met
-		// WordPress auto-deactivates on activation failure
-		self::run_requirement_checks( $config );
-	}
-}
-```
-
-## Use Multiple Traits
+Used from `Plugin::is_compatible()` with config from `run.php`:
 
 ```php
-<?php
-
-namespace CodeSoup\BoxNow\Services;
-
-use CodeSoup\BoxNow\Traits\LoggingTrait;
-use CodeSoup\BoxNow\Traits\CachingTrait;
-
-class DataService {
-	use LoggingTrait;
-	use CachingTrait;
-
-	public function process(): void {
-		$this->log( 'Processing data' );
-
-		$cached = $this->get_cache( 'data' );
-		if ( $cached ) {
-			return $cached;
-		}
-
-		// Process and cache
-		$data = array();
-		$this->set_cache( 'data', $data );
-	}
-}
+$config = array(
+	'MIN_WP_VERSION'  => '7.1',
+	'MIN_PHP_VERSION' => '8.1',
+	'MIN_WC_VERSION'  => '11.2',
+);
+self::run_requirement_checks( $config );
 ```
 
-## Create Custom Trait
+When `MIN_WC_VERSION` is set, WooCommerce must be active and meet that version.
 
-**File**: `includes/traits/trait-caching.php`
+There is **no** `CachingTrait` in this repository; add one only if you introduce shared caching behavior.
 
-```php
-<?php
+## Creating a new trait
 
-namespace CodeSoup\BoxNow\Traits;
-
-defined( 'ABSPATH' ) || exit;
-
-trait CachingTrait {
-
-	protected function get_cache( string $key ) {
-		return get_transient( $this->get_cache_key( $key ) );
-	}
-
-	protected function set_cache( string $key, $value, int $expiration = 3600 ): bool {
-		return set_transient(
-			$this->get_cache_key( $key ),
-			$value,
-			$expiration
-		);
-	}
-
-	protected function delete_cache( string $key ): bool {
-		return delete_transient( $this->get_cache_key( $key ) );
-	}
-
-	protected function get_cache_key( string $key ): string {
-		return sprintf(
-			'csbxwoo_%s',
-			sanitize_key( $key )
-		);
-	}
-}
-```
-
-Use custom trait:
-
-```php
-<?php
-
-namespace CodeSoup\BoxNow\Services;
-
-use CodeSoup\BoxNow\Traits\CachingTrait;
-
-class ApiService {
-	use CachingTrait;
-
-	public function get_data(): array {
-		$cached = $this->get_cache( 'api_data' );
-
-		if ( false !== $cached ) {
-			return $cached;
-		}
-
-		$data = $this->fetch_from_api();
-
-		$this->set_cache( 'api_data', $data, HOUR_IN_SECONDS );
-
-		return $data;
-	}
-
-	private function fetch_from_api(): array {
-		return array();
-	}
-}
-```
-
-## Trait Conflict Resolution
-
-When two traits have same method name:
-
-```php
-trait TraitA {
-	public function process() {
-		return 'A';
-	}
-}
-
-trait TraitB {
-	public function process() {
-		return 'B';
-	}
-}
-
-class MyClass {
-	use TraitA, TraitB {
-		TraitA::process insteadof TraitB;
-		TraitB::process as processB;
-	}
-
-	public function run() {
-		$this->process();   // Uses TraitA
-		$this->processB();  // Uses TraitB
-	}
-}
-```
+- File: `includes/traits/trait-{name}.php`
+- Name: `{Name}_Trait` (this plugin uses underscore before `Trait`, for example `Logging_Trait`)
+- Register namespace in `includes/autoloader.php` if you add a new subdirectory
 
 ## Rules
 
-- Create traits in `includes/traits/`
-- Use naming: `trait-{name}.php`
-- Trait name: `{Name}Trait`
-- Document required properties/methods
-- Keep traits focused on single purpose
-- Use protected methods in traits
-- Don't maintain complex state in traits
-- Use for horizontal code reuse
-
+- Keep traits focused; prefer services for orchestration logic.
+- Document whether a trait depends on WooCommerce or other plugins.

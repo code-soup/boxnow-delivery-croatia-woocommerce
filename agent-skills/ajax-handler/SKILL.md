@@ -1,275 +1,83 @@
 ---
 name: ajax-handler
-description: Create AJAX handlers for WordPress admin and frontend. Use when handling asynchronous requests from JavaScript, form submissions, or dynamic content loading.
+description: Create AJAX handlers for WordPress admin and checkout. Use when handling asynchronous requests from JavaScript.
 ---
 
 # AJAX Handler
 
-Create AJAX handlers for admin and frontend requests.
+## Location in this plugin
 
-## Create Handler
+- PHP: `includes/services/ajax/` — namespace `CodeSoup\BoxNow\Services\Ajax`
+- Example: `Order_AJAX_Handler` registered in `AjaxServiceProvider`
+- Checkout locker AJAX: `Checkout_Handler` in `includes/services/checkout/`
 
-**File**: `includes/ajax/class-form-handler.php`
+## Register hooks
 
 ```php
-<?php
-
-namespace CodeSoup\BoxNow\Ajax;
-
-use CodeSoup\BoxNow\Core\Hooker;
-
-defined( 'ABSPATH' ) || exit;
-
-class FormHandler {
-
-	private Hooker $hooker;
-
-	public function __construct( Hooker $hooker ) {
-		$this->hooker = $hooker;
-	}
-
-	public function init(): void {
-		// For logged-in users
-		$this->hooker->add_action(
-			'wp_ajax_csbxwoo_submit_form',
-			$this,
-			'handle_submit'
-		);
-
-		// For non-logged-in users
-		$this->hooker->add_action(
-			'wp_ajax_nopriv_csbxwoo_submit_form',
-			$this,
-			'handle_submit'
-		);
-	}
-
-	public function handle_submit(): void {
-		// Verify nonce
-		if ( ! check_ajax_referer( 'csbxwoo_form_nonce', 'nonce', false ) ) {
-			wp_send_json_error(
-				array(
-					'message' => __( 'Invalid nonce', 'codesoup-woo-boxnow' ),
-				),
-				403
-			);
-		}
-
-		// Check permissions
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error(
-				array(
-					'message' => __( 'Permission denied', 'codesoup-woo-boxnow' ),
-				),
-				403
-			);
-		}
-
-		// Sanitize input
-		$name  = isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '';
-		$email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
-
-		// Validate
-		if ( empty( $name ) || empty( $email ) ) {
-			wp_send_json_error(
-				array(
-					'message' => __( 'Required fields missing', 'codesoup-woo-boxnow' ),
-				),
-				400
-			);
-		}
-
-		// Process request
-		$result = $this->process_form( $name, $email );
-
-		if ( ! $result ) {
-			wp_send_json_error(
-				array(
-					'message' => __( 'Processing failed', 'codesoup-woo-boxnow' ),
-				),
-				500
-			);
-		}
-
-		// Success response
-		wp_send_json_success(
-			array(
-				'message' => __( 'Form submitted', 'codesoup-woo-boxnow' ),
-				'data'    => $result,
-			)
-		);
-	}
-
-	private function process_form( string $name, string $email ) {
-		// Process logic
-		return array(
-			'id'   => 123,
-			'name' => $name,
-		);
-	}
-}
+$this->hooker->add_action( 'wp_ajax_create_box_now_vouchers', $this, 'ajax_create_box_now_vouchers' );
 ```
 
-## Frontend JavaScript
+Logged-out checkout:
+
+```php
+$this->hooker->add_action( 'wp_ajax_nopriv_codesoup_bndp_save_boxnow_locker', $this, 'ajax_save_locker' );
+```
+
+## Admin handler security pattern
+
+From `Order_AJAX_Handler`:
+
+1. Verify nonce (`codesoup_boxnow_nonce`, POST field `nonce` or `security`).
+2. Resolve `order_id` and call `Order_Service::user_can_edit_order()` (HPOS-aware).
+3. Validate BoxNow order and parcel ownership where applicable.
+4. `wp_send_json_success()` / `wp_send_json_error()`.
+
+Shop order capabilities: prefer `edit_shop_order` checks via `Order_Service`, not only `manage_options`.
+
+## Checkout handler security pattern
+
+```php
+check_ajax_referer( 'codesoup_boxnow_nonce', 'nonce' );
+```
+
+Sanitize locker fields via `Locker_Data_Manager::sanitize_post_data()`.
+
+## JavaScript (admin)
+
+Admin bundle uses **fetch**, not jQuery — see `src/scripts/checkout/core/api-client.js` and `VoucherManager`:
 
 ```javascript
-jQuery( document ).ready( function( $ ) {
-	$( '#my-form' ).on( 'submit', function( e ) {
-		e.preventDefault();
+const apiClient = ApiClient.fromGlobal( myAjax );
+await apiClient.post( 'create_box_now_vouchers', { order_id, voucher_quantity } );
+```
 
-		$.ajax( {
-			url: csbxwooData.ajaxUrl,
-			type: 'POST',
-			data: {
-				action: 'csbxwoo_submit_form',
-				nonce: csbxwooData.nonce,
-				name: $( '#name' ).val(),
-				email: $( '#email' ).val()
-			},
-			success: function( response ) {
-				if ( response.success ) {
-					console.log( response.data.message );
-				} else {
-					console.error( response.data.message );
-				}
-			},
-			error: function( xhr ) {
-				console.error( 'AJAX error' );
-			}
-		} );
-	} );
+`myAjax` is localized in `includes/admin/class-init.php`.
+
+## PDF / GET actions
+
+`print_box_now_voucher` uses GET with `nonce`, `order_id`, and `parcel_id`; verify order owns the parcel before streaming PDF.
+
+## Service provider
+
+```php
+$this->singleton( 'order_ajax_handler', function ( $container ) {
+	return new Order_AJAX_Handler(
+		$container->get( 'hooker' ),
+		$container->get( 'delivery_service' ),
+		$container->get( 'parcel_service' ),
+		$container->get( 'order_service' )
+	);
 } );
-```
 
-## Localize Script
-
-```php
-$this->assets->localize_script(
-	'csbxwoo-main',
-	'csbxwooData',
-	array(
-		'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-		'nonce'   => wp_create_nonce( 'csbxwoo_form_nonce' ),
-	)
-);
-```
-
-## Admin Only Handler
-
-```php
-public function init(): void {
-	// Only for logged-in users in admin
-	$this->hooker->add_action(
-		'wp_ajax_csbxwoo_admin_action',
-		$this,
-		'handle_admin_action'
-	);
+public function boot(): void {
+	parent::boot();
+	$this->container->get( 'order_ajax_handler' )->init();
 }
 ```
-
-## Public Handler
-
-```php
-public function init(): void {
-	// For both logged-in and non-logged-in
-	$this->hooker->add_actions(
-		$this,
-		array(
-			'wp_ajax_csbxwoo_public_action',
-			'wp_ajax_nopriv_csbxwoo_public_action',
-		)
-	);
-}
-
-public function wp_ajax_csbxwoo_public_action(): void {
-	// Handler logic
-}
-
-public function wp_ajax_nopriv_csbxwoo_public_action(): void {
-	// Same handler for non-logged-in
-	$this->wp_ajax_csbxwoo_public_action();
-}
-```
-
-## Response Methods
-
-### Success
-
-```php
-wp_send_json_success(
-	array(
-		'message' => __( 'Success', 'codesoup-woo-boxnow' ),
-		'data'    => $data,
-	)
-);
-```
-
-### Error
-
-```php
-wp_send_json_error(
-	array(
-		'message' => __( 'Error', 'codesoup-woo-boxnow' ),
-	),
-	400
-);
-```
-
-### Custom JSON
-
-```php
-wp_send_json(
-	array(
-		'custom' => 'response',
-	),
-	200
-);
-```
-
-## Register in Service Provider
-
-```php
-<?php
-
-namespace CodeSoup\BoxNow\Providers;
-
-use CodeSoup\BoxNow\Abstracts\AbstractServiceProvider;
-use CodeSoup\BoxNow\Ajax\FormHandler;
-
-class AjaxServiceProvider extends AbstractServiceProvider {
-
-	public function register(): void {
-		$this->singleton(
-			'ajax.form',
-			FormHandler::class
-		);
-	}
-
-	public function boot(): void {
-		$this->container->get( 'ajax.form' )->init();
-	}
-}
-```
-
-## Security Checklist
-
-- [ ] Verify nonce with `check_ajax_referer()`
-- [ ] Check user capabilities
-- [ ] Sanitize all input
-- [ ] Validate data
-- [ ] Use wp_send_json_* functions
-- [ ] Return proper HTTP status codes
-- [ ] Handle errors gracefully
 
 ## Rules
 
-- Create handlers in `includes/ajax/`
-- Use `wp_ajax_{action}` for logged-in users
-- Use `wp_ajax_nopriv_{action}` for non-logged-in users
-- Always verify nonce
-- Always check permissions
-- Sanitize all input
-- Use wp_send_json_success/error
-- Localize ajaxUrl and nonce
-- Action name must match JavaScript
-
+- Handlers live under `includes/services/ajax/` (not `includes/ajax/`).
+- Use nonce action `codesoup_boxnow_nonce` unless introducing a separate action with a clear scope.
+- Always sanitize input; use capability checks appropriate to shop orders.
+- Match WordPress action names in JS `action` / `FormData` field.
